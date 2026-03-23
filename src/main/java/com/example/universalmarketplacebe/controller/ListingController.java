@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RestController("/api/listings")
+@RestController
+@RequestMapping("/api/listings")
 @RequiredArgsConstructor
 public class ListingController {
     private final ListingService listingService;
@@ -32,7 +33,7 @@ public class ListingController {
         return listingService.updateListing(id, listing);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{id}")
     public void deleteListing(@PathVariable Long id) {
         listingService.deleteListing(id);
     }

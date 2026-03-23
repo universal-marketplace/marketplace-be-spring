@@ -5,7 +5,8 @@ import com.example.universalmarketplacebe.service.cartService.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-@RestController("/api/cart")
+@RestController
+@RequestMapping("/api/cart")
 @RequiredArgsConstructor
 public class CartController {
     private final CartService cartService;
