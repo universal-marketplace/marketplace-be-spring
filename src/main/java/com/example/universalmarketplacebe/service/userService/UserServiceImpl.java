@@ -1,5 +1,7 @@
 package com.example.universalmarketplacebe.service.userService;
 
+import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
+import com.example.universalmarketplacebe.dto.userResponse.UserDto;
 import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,27 +13,27 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public User getUser() {
+    public UserDto getUser() {
         return null;
     }
 
     @Override
-    public User getUser(Long id) {
+    public UserDto getUser(Long id) {
         return null;
     }
 
     @Override
-    public User updateUser(User user) {
+    public UserDto updateUser(UserUpdateRequest user) {
         return null;
     }
 
     @Override
-    public User getUserListings(Long userId) {
+    public UserDto getUserListings(Long userId) {
         return null;
     }
 
     @Override
-    public User getUserReviews(Long userId) {
+    public UserDto getUserReviews(Long userId) {
         return null;
     }
 }

@@ -1,15 +1,17 @@
 package com.example.universalmarketplacebe.service.userService;
 
+import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
+import com.example.universalmarketplacebe.dto.userResponse.UserDto;
 import com.example.universalmarketplacebe.model.User;
 
 public interface UserService {
-    User getUser();
+    UserDto getUser();
 
-    User getUser(Long id);
+    UserDto getUser(Long id);
 
-    User updateUser(User user);
+    UserDto updateUser(UserUpdateRequest user);
 
-    User getUserListings(Long userId);
+    UserDto getUserListings(Long userId);
 
-    User getUserReviews(Long userId);
+    UserDto getUserReviews(Long userId);
 }

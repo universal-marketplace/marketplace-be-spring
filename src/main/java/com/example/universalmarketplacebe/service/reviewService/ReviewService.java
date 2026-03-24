@@ -1,10 +1,9 @@
 package com.example.universalmarketplacebe.service.reviewService;
 
-import com.example.universalmarketplacebe.model.Reply;
-import com.example.universalmarketplacebe.model.Review;
+import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 
 public interface ReviewService {
-    Review createReview();
+    ReviewDto createReview();
 
-    Reply replyToReview(Long id);
+    ReviewDto replyToReview(Long id);
 }

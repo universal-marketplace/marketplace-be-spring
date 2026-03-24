@@ -1,17 +1,18 @@
 package com.example.universalmarketplacebe.service.listingService;
 
-import com.example.universalmarketplacebe.model.Listening;
+import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
+import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 
 import java.util.List;
 
 public interface ListingService {
-    List<Listening> getAllListings();
+    List<ListingDto> getAllListings();
 
-    Listening getListingById(Long id);
+    ListingDto getListingById(Long id);
 
-    Listening createListing(Listening listing);
+    ListingDto createListing(ListingRequest listing);
 
-    Listening updateListing(Long id, Listening listing);
+    ListingDto updateListing(Long id, ListingRequest listing);
 
     void deleteListing(Long id);
 }

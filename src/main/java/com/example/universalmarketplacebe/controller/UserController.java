@@ -1,5 +1,7 @@
 package com.example.universalmarketplacebe.controller;
 
+import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
+import com.example.universalmarketplacebe.dto.userResponse.UserDto;
 import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.service.userService.UserService;
 import lombok.RequiredArgsConstructor;
@@ -13,27 +15,27 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public User getUser() {
+    public UserDto getUser() {
         return userService.getUser();
     }
 
     @GetMapping("/{id}")
-    public User getUser(@PathVariable Long id) {
+    public UserDto getUser(@PathVariable Long id) {
         return userService.getUser(id);
     }
 
     @PutMapping("/me")
-    public User updateUser(@RequestBody User user) {
+    public UserDto updateUser(@RequestBody UserUpdateRequest user) {
         return userService.updateUser(user);
     }
 
     @GetMapping("/{userId}/listings")
-    public User getUserListings(@PathVariable Long userId) {
+    public UserDto getUserListings(@PathVariable Long userId) {
         return userService.getUserListings(userId);
     }
 
     @GetMapping("/{userId}/reviews")
-    public User getUserReviews(@PathVariable Long userId) {
+    public UserDto getUserReviews(@PathVariable Long userId) {
         return userService.getUserReviews(userId);
     }
 

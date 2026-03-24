@@ -1,6 +1,7 @@
 package com.example.universalmarketplacebe.service.listingService;
 
-import com.example.universalmarketplacebe.model.Listening;
+import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
+import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.repository.listingRepository.ListeningRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,22 +14,22 @@ public class ListingServiceImpl implements ListingService {
     private final ListeningRepository listeningRepository;
 
     @Override
-    public List<Listening> getAllListings() {
+    public List<ListingDto> getAllListings() {
         return List.of();
     }
 
     @Override
-    public Listening getListingById(Long id) {
+    public ListingDto getListingById(Long id) {
         return null;
     }
 
     @Override
-    public Listening createListing(Listening listing) {
+    public ListingDto createListing(ListingRequest listing) {
         return null;
     }
 
     @Override
-    public Listening updateListing(Long id, Listening listing) {
+    public ListingDto updateListing(Long id, ListingRequest listing) {
         return null;
     }
 

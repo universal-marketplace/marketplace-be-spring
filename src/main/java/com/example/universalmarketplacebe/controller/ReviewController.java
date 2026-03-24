@@ -1,5 +1,6 @@
 package com.example.universalmarketplacebe.controller;
 
+import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.model.Reply;
 import com.example.universalmarketplacebe.model.Review;
 import com.example.universalmarketplacebe.service.reviewService.ReviewService;
@@ -17,12 +18,12 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public Review createReview() {
+    public ReviewDto createReview() {
         return reviewService.createReview();
     }
 
     @PostMapping("/{id}/reply")
-    public Reply replyToReview(@PathVariable Long id) {
+    public ReviewDto replyToReview(@PathVariable Long id) {
         return reviewService.replyToReview(id);
     }
 }
