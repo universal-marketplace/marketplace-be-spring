@@ -3,11 +3,10 @@ package com.example.universalmarketplacebe.configuration;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.NullValueCheckStrategy;
 
-@org.mapstruct.Mapper(
+@org.mapstruct.MapperConfig(
         componentModel = "spring",
         injectionStrategy = InjectionStrategy.CONSTRUCTOR,
-        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS,
-        implementationPackage = "<PACKAGE_NAME>.mapper"
+        nullValueCheckStrategy = NullValueCheckStrategy.ALWAYS
 )
 public class MapperConfig {
 }

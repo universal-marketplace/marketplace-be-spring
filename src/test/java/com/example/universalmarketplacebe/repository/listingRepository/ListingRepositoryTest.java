@@ -1,6 +1,9 @@
 package com.example.universalmarketplacebe.repository.listingRepository;
 
 import com.example.universalmarketplacebe.model.Listing;
+import com.example.universalmarketplacebe.model.Type;
+import com.example.universalmarketplacebe.model.User;
+import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -10,6 +13,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +31,9 @@ class ListingRepositoryTest {
     @Autowired
     private ListingRepository listingRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     void connectionEstablished() {
         assertThat(postgres.isCreated()).isTrue();
@@ -36,7 +43,20 @@ class ListingRepositoryTest {
     @Test
     void shouldSaveAndFindListing() {
         // Given
+        User advertiser = new User();
+        advertiser.setName("advertiser");
+        advertiser.setEmail("advertiser@example.com");
+        advertiser.setPassword("password");
+        advertiser.setAvatarUrl("http://example.com/avatar.png");
+        userRepository.save(advertiser);
+
         Listing listing = new Listing();
+        listing.setTitle("Test Title");
+        listing.setDescription("Test Description");
+        listing.setPrice(BigDecimal.valueOf(100.0));
+        listing.setImageUrl("http://example.com/image.png");
+        listing.setAdvertiser(advertiser);
+        listing.setType(Type.ITEM);
 
         // When
         Listing savedListing = listingRepository.save(listing);
@@ -47,6 +67,5 @@ class ListingRepositoryTest {
         Optional<Listing> foundListing = listingRepository.findById(savedListing.getId());
         assertThat(foundListing).isPresent();
     }
-
 
 }

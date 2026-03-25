@@ -1,6 +1,8 @@
 package com.example.universalmarketplacebe.repository.reviewRepository;
 
 import com.example.universalmarketplacebe.model.Review;
+import com.example.universalmarketplacebe.model.User;
+import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -25,6 +27,9 @@ class ReviewRepositoryTest {
     @Autowired
     private ReviewRepository reviewRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     void connectionEstablished() {
         assertThat(postgres.isCreated()).isTrue();
@@ -34,7 +39,25 @@ class ReviewRepositoryTest {
     @Test
     void shouldSaveAndFindReview() {
         // Given
+        User author = new User();
+        author.setName("author");
+        author.setEmail("author@example.com");
+        author.setPassword("password");
+        author.setAvatarUrl("http://example.com/author.jpg");
+        userRepository.save(author);
+
+        User target = new User();
+        target.setName("target");
+        target.setEmail("target@example.com");
+        target.setPassword("password");
+        target.setAvatarUrl("http://example.com/target.jpg");
+        userRepository.save(target);
+
         Review review = new Review();
+        review.setAuthor(author);
+        review.setTargetUser(target);
+        review.setRating(5);
+        review.setComment("Great!");
 
         // When
         Review savedReview = reviewRepository.save(review);
@@ -44,5 +67,6 @@ class ReviewRepositoryTest {
 
         Optional<Review> foundReview = reviewRepository.findById(savedReview.getId());
         assertThat(foundReview).isPresent();
+        assertThat(foundReview.get().getComment()).isEqualTo("Great!");
     }
 }

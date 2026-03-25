@@ -35,6 +35,10 @@ class UserRepositoryTest {
     void shouldSaveAndFindUser() {
         // Given
         User user = new User();
+        user.setName("testuser");
+        user.setEmail("testuser@example.com");
+        user.setPassword("password");
+        user.setAvatarUrl("http://example.com/avatar.jpg");
         
         // When
         User savedUser = userRepository.save(user);
@@ -44,5 +48,6 @@ class UserRepositoryTest {
         
         Optional<User> foundUser = userRepository.findById(savedUser.getId());
         assertThat(foundUser).isPresent();
+        assertThat(foundUser.get().getName()).isEqualTo("testuser");
     }
 }
