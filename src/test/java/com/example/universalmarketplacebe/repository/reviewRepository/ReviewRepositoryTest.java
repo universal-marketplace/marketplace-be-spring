@@ -1,6 +1,6 @@
-package com.example.universalmarketplacebe.repository.userRepository;
+package com.example.universalmarketplacebe.repository.reviewRepository;
 
-import com.example.universalmarketplacebe.model.User;
+import com.example.universalmarketplacebe.model.Review;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -17,13 +17,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class UserRepositoryTest {
+class ReviewRepositoryTest {
     @Container
     @ServiceConnection
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
 
     @Autowired
-    private UserRepository userRepository;
+    private ReviewRepository reviewRepository;
 
     @Test
     void connectionEstablished() {
@@ -32,17 +32,17 @@ class UserRepositoryTest {
     }
 
     @Test
-    void shouldSaveAndFindUser() {
+    void shouldSaveAndFindReview() {
         // Given
-        User user = new User();
-        
+        Review review = new Review();
+
         // When
-        User savedUser = userRepository.save(user);
+        Review savedReview = reviewRepository.save(review);
 
         // Then
-        assertThat(savedUser.getId()).isNotNull();
-        
-        Optional<User> foundUser = userRepository.findById(savedUser.getId());
-        assertThat(foundUser).isPresent();
+        assertThat(savedReview.getId()).isNotNull();
+
+        Optional<Review> foundReview = reviewRepository.findById(savedReview.getId());
+        assertThat(foundReview).isPresent();
     }
 }

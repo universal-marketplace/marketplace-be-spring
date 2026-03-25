@@ -1,6 +1,6 @@
-package com.example.universalmarketplacebe.repository.userRepository;
+package com.example.universalmarketplacebe.repository.cartRepository;
 
-import com.example.universalmarketplacebe.model.User;
+import com.example.universalmarketplacebe.model.Cart;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -13,17 +13,19 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class UserRepositoryTest {
+class CartRepositoryTest {
+
     @Container
     @ServiceConnection
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:18");
 
     @Autowired
-    private UserRepository userRepository;
+    private CartRepository cartRepository;
 
     @Test
     void connectionEstablished() {
@@ -32,17 +34,19 @@ class UserRepositoryTest {
     }
 
     @Test
-    void shouldSaveAndFindUser() {
+    void shouldSaveAndFindCart() {
         // Given
-        User user = new User();
-        
+        Cart cart = new Cart();
+
         // When
-        User savedUser = userRepository.save(user);
+        Cart savedCart = cartRepository.save(cart);
 
         // Then
-        assertThat(savedUser.getId()).isNotNull();
-        
-        Optional<User> foundUser = userRepository.findById(savedUser.getId());
-        assertThat(foundUser).isPresent();
+        assertThat(savedCart.getId()).isNotNull();
+
+        Optional<Cart> foundCart = cartRepository.findById(savedCart.getId());
+        assertThat(foundCart).isPresent();
     }
+
+
 }
