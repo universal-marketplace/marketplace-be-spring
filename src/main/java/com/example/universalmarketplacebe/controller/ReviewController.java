@@ -1,14 +1,13 @@
 package com.example.universalmarketplacebe.controller;
 
+import com.example.universalmarketplacebe.dto.reviewRequest.ReplyRequest;
+import com.example.universalmarketplacebe.dto.reviewRequest.ReviewCreateRequest;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.model.Reply;
 import com.example.universalmarketplacebe.model.Review;
 import com.example.universalmarketplacebe.service.reviewService.ReviewService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -18,12 +17,12 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping
-    public ReviewDto createReview() {
-        return reviewService.createReview();
+    public ReviewDto createReview(ReviewCreateRequest request) {
+        return reviewService.createReview(request);
     }
 
     @PostMapping("/{id}/reply")
-    public ReviewDto replyToReview(@PathVariable Long id) {
-        return reviewService.replyToReview(id);
+    public ReviewDto replyToReview(@PathVariable Long id, @RequestBody ReplyRequest replyRequest) {
+        return reviewService.replyToReview(id, replyRequest);
     }
 }

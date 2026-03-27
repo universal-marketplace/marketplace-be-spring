@@ -1,11 +1,14 @@
 package com.example.universalmarketplacebe.controller;
 
+import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
+import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
 import com.example.universalmarketplacebe.dto.userResponse.UserDto;
-import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.service.userService.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -30,12 +33,12 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/listings")
-    public UserDto getUserListings(@PathVariable Long userId) {
+    public List<ListingDto> getUserListings(@PathVariable Long userId) {
         return userService.getUserListings(userId);
     }
 
     @GetMapping("/{userId}/reviews")
-    public UserDto getUserReviews(@PathVariable Long userId) {
+    public List<ReviewDto> getUserReviews(@PathVariable Long userId) {
         return userService.getUserReviews(userId);
     }
 
