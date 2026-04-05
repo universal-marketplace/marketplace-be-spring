@@ -42,6 +42,7 @@ public class ReviewController {
      * Użytkownik, który otrzymał recenzję, dodaje do niej tzw. "reply".
      *
      * @param id ID docelowej recenzji.
+     * @param idReply ID docelowej odpowiedzi.
      * @param replyRequest Treść odpowiedzi.
      * <br>Przykładowe wywołanie: {@code POST /api/reviews/10/reply}
      * <br>Przykładowy Payload:
@@ -52,8 +53,8 @@ public class ReviewController {
      * </pre>
      * @return Zaktualizowane ReviewDto, które zagnieżdża w sobie najnowszą odpowiedź.
      */
-    @PostMapping("/{id}/reply")
-    public ReviewDto replyToReview(@PathVariable Long id, @RequestBody ReplyRequest replyRequest) {
-        return reviewService.replyToReview(id, replyRequest);
+    @PostMapping("/{id}/reply/{idReply}")
+    public ReviewDto replyToReview(@PathVariable Long id,@PathVariable Long idReply, @RequestBody ReplyRequest replyRequest) {
+        return reviewService.replyToReview(id, idReply, replyRequest);
     }
 }

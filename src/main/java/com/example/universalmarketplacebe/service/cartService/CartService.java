@@ -6,7 +6,7 @@ import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
 public interface CartService {
     CartDto getCart();
 
-    CartDto addItemToCart(AddToCartRequest listingId);
+    CartDto addItemToCart(AddToCartRequest addToCartRequest);
 
     CartDto removeItemFromCart(Long listingId);
 

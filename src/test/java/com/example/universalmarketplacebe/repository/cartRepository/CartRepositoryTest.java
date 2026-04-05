@@ -63,4 +63,40 @@ class CartRepositoryTest {
         assertThat(foundCart).isPresent();
     }
 
+    @Test
+    void shouldFindCartByUserEmail() {
+        // Given
+        String email = "john.doe@example.com";
+        User user = new User();
+        user.setName("John Doe");
+        user.setEmail(email);
+        user.setPassword("securePassword");
+        user.setAvatarUrl("http://example.com/avatar.png");
+        userRepository.save(user);
+
+        Cart cart = new Cart();
+        cart.setUser(user);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        cartRepository.save(cart);
+
+        // When
+        Optional<Cart> foundCart = cartRepository.findByUserEmail(email);
+
+        // Then
+        assertThat(foundCart).isPresent();
+        assertThat(foundCart.get().getUser().getEmail()).isEqualTo(email);
+        assertThat(foundCart.get().getId()).isEqualTo(cart.getId());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenCartDoesNotExistForUserEmail() {
+        // Given
+        String email = "non.existent@example.com";
+
+        // When
+        Optional<Cart> notFoundCart = cartRepository.findByUserEmail(email);
+
+        // Then
+        assertThat(notFoundCart).isEmpty();
+    }
 }
