@@ -20,4 +20,7 @@ public class CartItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "listing_id", nullable = false)
     private Listing listing;
+
+    @Column(name = "quantity", nullable = false)
+    private Integer quantity;
 }

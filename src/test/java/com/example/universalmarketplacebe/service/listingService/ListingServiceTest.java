@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,8 +44,8 @@ class ListingServiceTest {
     // Pomocnicza metoda do tworzenia ListingRequest
     private ListingRequest createMockListingRequest() {
         return new ListingRequest(
-                "Title", "Description", 100.0, "PLN",
-                1, "unit", "http://image.url", List.of("tag1", "tag2"), "ITEM"
+                "Title", "Description", BigDecimal.valueOf(100.0), "PLN",
+                1, "http://image.url", List.of("tag1", "tag2"), "ITEM"
         );
     }
 

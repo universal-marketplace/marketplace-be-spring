@@ -4,8 +4,12 @@ import com.example.universalmarketplacebe.dto.reviewRequest.ReplyRequest;
 import com.example.universalmarketplacebe.dto.reviewRequest.ReviewCreateRequest;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.mapper.ReviewMapper;
+import com.example.universalmarketplacebe.model.Reply;
 import com.example.universalmarketplacebe.model.Review;
+import com.example.universalmarketplacebe.model.User;
+import com.example.universalmarketplacebe.repository.replyRepository.ReplyRepository;
 import com.example.universalmarketplacebe.repository.reviewRepository.ReviewRepository;
+import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +29,13 @@ import static org.mockito.Mockito.*;
 class ReviewServiceTest {
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private ReviewRepository reviewRepository;
+
+    @Mock
+    private ReplyRepository replyRepository;
 
     @Mock
     private ReviewMapper reviewMapper;
@@ -50,10 +60,13 @@ class ReviewServiceTest {
     @DisplayName("createReview() - Happy Path: Powinien utworzyć i zwrócić nową recenzję")
     void createReview_HappyPath_ReturnsReviewDto() {
         // Given
-        ReviewCreateRequest request = new ReviewCreateRequest(2L, 5, "Great service!");
+        Long targetId = 2L;
+        ReviewCreateRequest request = new ReviewCreateRequest(targetId, 5, "Great service!");
         Review mockReview = new Review();
         ReviewDto expectedDto = createMockReviewDto();
 
+        when(userRepository.findById(targetId)).thenReturn(Optional.of(new User()));
+        when(reviewMapper.toEntity(request)).thenReturn(mockReview);
         when(reviewRepository.save(any(Review.class))).thenReturn(mockReview);
         when(reviewMapper.toDto(mockReview)).thenReturn(expectedDto);
 
@@ -63,6 +76,7 @@ class ReviewServiceTest {
         // Then
         assertNotNull(result);
         assertEquals(expectedDto.comment(), result.comment());
+        verify(userRepository).findById(targetId);
         verify(reviewRepository).save(any(Review.class));
     }
 
@@ -70,8 +84,10 @@ class ReviewServiceTest {
     @DisplayName("createReview() - Worse Path: Powinien rzucić wyjątek gdy docelowy użytkownik nie istnieje")
     void createReview_WorsePath_TargetUserNotFound() {
         // Given
-        ReviewCreateRequest request = new ReviewCreateRequest(999L, 5, "Comment");
-        
+        Long targetId = 999L;
+        ReviewCreateRequest request = new ReviewCreateRequest(targetId, 5, "Comment");
+        when(userRepository.findById(targetId)).thenReturn(Optional.empty());
+
         // When & Then
         assertThrows(RuntimeException.class, () -> reviewService.createReview(request));
     }
@@ -83,7 +99,7 @@ class ReviewServiceTest {
     }
 
     // ==========================================
-    // Tests for replyToReview(Long, ReplyRequest)
+    // Tests for replyToReview(Long, Long, ReplyRequest)
     // ==========================================
 
     @Test
@@ -91,24 +107,29 @@ class ReviewServiceTest {
     void replyToReview_HappyPath_AddsReply() {
         // Given
         Long reviewId = 1L;
+        Long idReply = 2L;
         ReplyRequest replyRequest = new ReplyRequest("Thank you for your feedback!");
         Review existingReview = new Review();
         existingReview.setReplies(new ArrayList<>());
+        
+        Reply existingReply = new Reply();
+        existingReply.setChildReplies(new ArrayList<>());
+
         ReviewDto expectedDto = createMockReviewDto();
 
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.of(existingReview));
-        when(reviewRepository.save(any(Review.class))).thenReturn(existingReview);
+        when(replyRepository.findById(idReply)).thenReturn(Optional.of(existingReply));
+        when(replyRepository.save(any(Reply.class))).thenReturn(new Reply());
         when(reviewMapper.toDto(existingReview)).thenReturn(expectedDto);
 
         // When
-        ReviewDto result = reviewService.replyToReview(reviewId, replyRequest);
+        ReviewDto result = reviewService.replyToReview(reviewId, idReply, replyRequest);
 
         // Then
         assertNotNull(result);
         verify(reviewRepository).findById(reviewId);
-        verify(reviewRepository).save(existingReview);
-        assertEquals(1, existingReview.getReplies().size());
-        assertEquals(replyRequest.reply(), existingReview.getReplies().get(0).getComment());
+        verify(replyRepository).findById(idReply);
+        verify(replyRepository).save(any(Reply.class));
     }
 
     @Test
@@ -116,17 +137,18 @@ class ReviewServiceTest {
     void replyToReview_WorsePath_ReviewNotFound() {
         // Given
         Long reviewId = 999L;
+        Long idReply = 999L;
         ReplyRequest replyRequest = new ReplyRequest("Reply");
         when(reviewRepository.findById(reviewId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(RuntimeException.class, () -> reviewService.replyToReview(reviewId, replyRequest));
+        assertThrows(RuntimeException.class, () -> reviewService.replyToReview(reviewId, idReply, replyRequest));
     }
 
     @Test
     @DisplayName("replyToReview() - Edge Case: Powinien rzucić IllegalArgumentException dla ID równego null")
     void replyToReview_EdgeCase_NullId() {
         ReplyRequest replyRequest = new ReplyRequest("Reply");
-        assertThrows(IllegalArgumentException.class, () -> reviewService.replyToReview(null, replyRequest));
+        assertThrows(IllegalArgumentException.class, () -> reviewService.replyToReview(null, null, replyRequest));
     }
 }

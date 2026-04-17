@@ -3,8 +3,11 @@ package com.example.universalmarketplacebe.controller;
 import com.example.universalmarketplacebe.dto.cartRequest.AddToCartRequest;
 import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
 import com.example.universalmarketplacebe.model.Cart;
+import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.service.cartService.CartService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -39,8 +42,9 @@ public class CartController {
      * </pre>
      */
     @GetMapping
-    public CartDto getCart() {
-        return cartService.getCart();
+    public CartDto getCart(Authentication authentication) {
+        User principal = (User) authentication.getPrincipal();
+        return cartService.getCart(principal.getEmail());
     }
 
     /**
