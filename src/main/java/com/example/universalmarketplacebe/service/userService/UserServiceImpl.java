@@ -2,6 +2,7 @@ package com.example.universalmarketplacebe.service.userService;
 
 import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
+import com.example.universalmarketplacebe.dto.userRequest.RegisterRequest;
 import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
 import com.example.universalmarketplacebe.dto.userResponse.UserDto;
 import com.example.universalmarketplacebe.mapper.ListingMapper;
@@ -14,6 +15,7 @@ import com.example.universalmarketplacebe.repository.listingRepository.ListingRe
 import com.example.universalmarketplacebe.repository.reviewRepository.ReviewRepository;
 import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
     private final ReviewRepository reviewRepository;
@@ -61,5 +64,19 @@ public class UserServiceImpl implements UserService {
         }
         List<Review> allByTargetUserId = reviewRepository.findAllByTargetUserId(userId);
         return reviewMapper.toDtoList(allByTargetUserId);
+    }
+
+    @Override
+    public UserDto register(RegisterRequest registerRequest) {
+        if (userRepository.findByEmail(registerRequest.email()).isPresent()) {
+            throw new IllegalArgumentException("User with this email already exists");
+        }
+        if (!registerRequest.password().equals(registerRequest.passwordRepeated())) {
+            throw new IllegalArgumentException("Passwords do not match");
+        }
+        User user = userMapper.toEntity(registerRequest);
+        user.setPassword(passwordEncoder.encode(registerRequest.password()));
+        userRepository.save(user);
+        return userMapper.toDto(user);
     }
 }

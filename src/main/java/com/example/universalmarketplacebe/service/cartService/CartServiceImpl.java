@@ -23,7 +23,7 @@ public class CartServiceImpl implements CartService {
     private final CartMapper cartMapper;
 
     @Override
-    public CartDto getCart() {
+    public CartDto getCart(String email) {
         return null;
     }
 
@@ -33,7 +33,7 @@ public class CartServiceImpl implements CartService {
                 () -> new RuntimeException("xyz")
         );
 
-        getCart();
+        getCart("ok");
         Cart cart = new Cart();
         //podpbna logika tylko chcę otrzymać tylko Cart a nie zmieniać na CartDto
 
@@ -58,7 +58,7 @@ public class CartServiceImpl implements CartService {
                 () -> new RuntimeException("xyz")
         );
 
-        getCart();
+        //getCart(principal.getEmail());
         Cart cart = new Cart();
         //podpbna logika tylko chcę otrzymać tylko Cart a nie zmieniać na CartDto
 

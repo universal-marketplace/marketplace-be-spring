@@ -55,7 +55,7 @@ class CartServiceTest {
         when(cartMapper.toDto(mockCart)).thenReturn(expectedDto);
 
         // When
-        CartDto result = cartService.getCart();
+        CartDto result = cartService.getCart("ok");
 
         // Then
         assertNotNull(result);
@@ -67,7 +67,7 @@ class CartServiceTest {
     void getCart_WorsePath_NotFound() {
         when(cartRepository.findByUserEmail(anyString())).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> cartService.getCart());
+        assertThrows(RuntimeException.class, () -> cartService.getCart("ok"));
     }
 
     // ==========================================

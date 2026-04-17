@@ -4,7 +4,7 @@ import com.example.universalmarketplacebe.dto.cartRequest.AddToCartRequest;
 import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
 
 public interface CartService {
-    CartDto getCart();
+    CartDto getCart(String email);
 
     CartDto addItemToCart(AddToCartRequest addToCartRequest);
 
