@@ -10,7 +10,6 @@ public record ListingRequest(
         @NotBlank String title,
         @NotBlank String description,
         @NotNull BigDecimal priceAmount,
-        @NotBlank String currency,
         Integer unitAmount,
         @NotBlank String imageUrl,
         @NotNull List<String> tags,

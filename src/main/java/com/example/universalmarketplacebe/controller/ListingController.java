@@ -1,9 +1,12 @@
 package com.example.universalmarketplacebe.controller;
 
+import com.example.universalmarketplacebe.dto.PageResponse;
 import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
 import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.service.listingService.ListingService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,14 +21,15 @@ public class ListingController {
     private final ListingService listingService;
 
     /**
-     * Zwraca listę wszystkich ogłoszeń w serwisie.
+     * Zwraca listę wszystkich ogłoszeń w serwisie ze stronicowaniem.
      * Używane najczęściej do przeglądania ogólnego np. na stronie głównej.
      *
-     * @return Lista ListingDto reprezentujących szczegóły ofert.
+     * @param pageable Parametry stronicowania.
+     * @return PageResponse ListingDto reprezentujących szczegóły ofert.
      */
     @GetMapping
-    public List<ListingDto> getAllListings() {
-        return listingService.getAllListings();
+    public PageResponse<ListingDto> getAllListings(Pageable pageable) {
+        return listingService.getAllListings(pageable);
     }
 
     /**
@@ -50,7 +54,6 @@ public class ListingController {
      *   "title": "Sprzedam Rower Męski",
      *   "description": "Rower w bardzo dobrym stanie technicznym.",
      *   "priceAmount": 550.00,
-     *   "currency": "PLN",
      *   "imageUrl": "https://example.com/bike.jpg",
      *   "tags": ["rowery", "sport"],
      *   "type": "PRODUCT"
@@ -59,7 +62,7 @@ public class ListingController {
      * @return Zapisane ogłoszenie ListingDto z przydzielonym ID z bazy.
      */
     @PostMapping
-    public ListingDto createListing(@RequestBody ListingRequest listing) {
+    public ListingDto createListing(@Valid @RequestBody ListingRequest listing) {
         return listingService.createListing(listing);
     }
 
@@ -74,7 +77,6 @@ public class ListingController {
      *   "title": "Sprzedam Rower Męski (Zaktualizowane)",
      *   "description": "Rower w obniżonej cenie!",
      *   "priceAmount": 450.00,
-     *   "currency": "PLN",
      *   "imageUrl": "https://example.com/bike.jpg",
      *   "tags": ["rowery", "sport", "promocja"],
      *   "type": "PRODUCT"
@@ -83,7 +85,7 @@ public class ListingController {
      * @return Zaktualizowane ListingDto.
      */
     @PutMapping("/{id}")
-    public ListingDto updateListing(@PathVariable Long id, @RequestBody ListingRequest listing) {
+    public ListingDto updateListing(@PathVariable Long id, @Valid @RequestBody ListingRequest listing) {
         return listingService.updateListing(id, listing);
     }
 

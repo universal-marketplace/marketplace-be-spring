@@ -5,6 +5,7 @@ import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
 import com.example.universalmarketplacebe.model.Cart;
 import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.service.cartService.CartService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,18 +27,16 @@ public class CartController {
      * <br>Przykładowy zwrot:
      * <pre>
      * {
-     *   "id": 1,
-     *   "userId": 1,
      *   "items": [
      *     {
-     *       "id": 1,
      *       "listingId": 10,
-     *       "listingTitle": "Laptop",
+     *       "title": "Laptop",
+     *       "unitPrice": 2000.00,
      *       "quantity": 1,
-     *       "price": "2000.00 PLN"
+     *       "subtotal": 2000.00
      *     }
      *   ],
-     *   "totalPrice": "2000.00 PLN"
+     *   "totalPrice": 2000.00
      * }
      * </pre>
      */
@@ -61,7 +60,7 @@ public class CartController {
      * @return Zaktualizowany CartDto.
      */
     @PostMapping("/items/")
-    public CartDto addItemToCart(@RequestBody AddToCartRequest addToCartRequest) {
+    public CartDto addItemToCart(@Valid @RequestBody AddToCartRequest addToCartRequest) {
         return cartService.addItemToCart(addToCartRequest);
     }
 
@@ -80,7 +79,7 @@ public class CartController {
      * @return Zaktualizowany CartDto.
      */
     @PutMapping("/items/")
-    public CartDto updateItemInCart(@RequestBody AddToCartRequest addToCartRequest) {
+    public CartDto updateItemInCart(@Valid @RequestBody AddToCartRequest addToCartRequest) {
         return cartService.updateItemInCart(addToCartRequest);
     }
 

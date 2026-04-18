@@ -1,16 +1,26 @@
 package com.example.universalmarketplacebe.service.listingService;
 
+import com.example.universalmarketplacebe.dto.PageResponse;
 import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
 import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.mapper.ListingMapper;
 import com.example.universalmarketplacebe.model.Listing;
+import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.repository.listingRepository.ListingRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,169 +42,197 @@ class ListingServiceTest {
     @InjectMocks
     private ListingServiceImpl listingService;
 
-    // Pomocnicza metoda do tworzenia ListingDto
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
+    @BeforeEach
+    void setUp() {
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    private User createMockUser() {
+        User user = new User();
+        user.setId(1L);
+        user.setEmail("test@example.com");
+        return user;
+    }
+
     private ListingDto createMockListingDto(Long id) {
         return new ListingDto(
-                id, "Title", "Description", "100.00 PLN", "http://image.url",
+                id, "Title", "Description", BigDecimal.valueOf(100.0), "http://image.url",
                 1L, "Advertiser", "avatar.png", 4.5, 10,
                 List.of("tag1", "tag2"), "ITEM"
         );
     }
 
-    // Pomocnicza metoda do tworzenia ListingRequest
     private ListingRequest createMockListingRequest() {
         return new ListingRequest(
-                "Title", "Description", BigDecimal.valueOf(100.0), "PLN",
+                "Title", "Description", BigDecimal.valueOf(100.0),
                 1, "http://image.url", List.of("tag1", "tag2"), "ITEM"
         );
     }
 
-    // ==========================================
-    // Tests for getAllListings()
-    // ==========================================
-
     @Test
-    @DisplayName("getAllListings() - Happy Path: Powinien zwrócić listę wszystkich ogłoszeń")
-    void getAllListings_HappyPath_ReturnsList() {
-        // Given
-        List<Listing> mockListings = List.of(new Listing(), new Listing());
-        List<ListingDto> expectedDtos = List.of(createMockListingDto(1L), createMockListingDto(2L));
+    @DisplayName("getAllListings() - Happy Path")
+    void getAllListings_HappyPath() {
+        Pageable pageable = PageRequest.of(0, 10);
+        Listing listing = new Listing();
+        Page<Listing> page = new PageImpl<>(List.of(listing));
+        ListingDto dto = createMockListingDto(1L);
 
-        when(listingRepository.findAll()).thenReturn(mockListings);
-        when(listingMapper.toDtoList(mockListings)).thenReturn(expectedDtos);
+        when(listingRepository.findAll(pageable)).thenReturn(page);
+        when(listingMapper.toDto(any(Listing.class))).thenReturn(dto);
 
-        // When
-        List<ListingDto> result = listingService.getAllListings();
+        PageResponse<ListingDto> result = listingService.getAllListings(pageable);
 
-        // Then
         assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(listingRepository).findAll();
+        assertEquals(1, result.content().size());
+        verify(listingRepository).findAll(pageable);
     }
 
-    // ==========================================
-    // Tests for getListingById(Long)
-    // ==========================================
-
     @Test
-    @DisplayName("getListingById() - Happy Path: Powinien zwrócić ogłoszenie o danym ID")
-    void getListingById_HappyPath_ReturnsDto() {
-        // Given
+    @DisplayName("getListingById() - Happy Path")
+    void getListingById_HappyPath() {
         Long id = 1L;
         Listing listing = new Listing();
-        ListingDto expectedDto = createMockListingDto(id);
+        ListingDto dto = createMockListingDto(id);
 
         when(listingRepository.findById(id)).thenReturn(Optional.of(listing));
-        when(listingMapper.toDto(listing)).thenReturn(expectedDto);
+        when(listingMapper.toDto(listing)).thenReturn(dto);
 
-        // When
         ListingDto result = listingService.getListingById(id);
 
-        // Then
         assertNotNull(result);
         assertEquals(id, result.id());
     }
 
     @Test
-    @DisplayName("getListingById() - Worse Path: Powinien rzucić wyjątek gdy ogłoszenie nie istnieje")
-    void getListingById_WorsePath_NotFound() {
-        when(listingRepository.findById(anyLong())).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class, () -> listingService.getListingById(1L));
+    @DisplayName("getListingById() - Worse Path: Not Found")
+    void getListingById_NotFound() {
+        when(listingRepository.findById(1L)).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> listingService.getListingById(1L));
     }
 
-    // ==========================================
-    // Tests for createListing(ListingRequest)
-    // ==========================================
-
     @Test
-    @DisplayName("createListing() - Happy Path: Powinien stworzyć i zwrócić nowe ogłoszenie")
-    void createListing_HappyPath_ReturnsDto() {
-        // Given
+    @DisplayName("createListing() - Happy Path")
+    void createListing_HappyPath() {
         ListingRequest request = createMockListingRequest();
+        User user = createMockUser();
         Listing listing = new Listing();
-        ListingDto expectedDto = createMockListingDto(1L);
+        ListingDto dto = createMockListingDto(1L);
 
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
         when(listingMapper.toEntity(request)).thenReturn(listing);
         when(listingRepository.save(any(Listing.class))).thenReturn(listing);
-        when(listingMapper.toDto(listing)).thenReturn(expectedDto);
+        when(listingMapper.toDto(any(Listing.class))).thenReturn(dto);
 
-        // When
         ListingDto result = listingService.createListing(request);
 
-        // Then
         assertNotNull(result);
         verify(listingRepository).save(any(Listing.class));
     }
 
     @Test
-    @DisplayName("createListing() - Edge Case: Powinien rzucić IllegalArgumentException gdy request to null")
-    void createListing_EdgeCase_NullRequest() {
+    @DisplayName("createListing() - Edge Case: Null Request")
+    void createListing_NullRequest() {
         assertThrows(IllegalArgumentException.class, () -> listingService.createListing(null));
     }
 
-    // ==========================================
-    // Tests for updateListing(Long, ListingRequest)
-    // ==========================================
-
     @Test
-    @DisplayName("updateListing() - Happy Path: Powinien zaktualizować istniejące ogłoszenie")
-    void updateListing_HappyPath_ReturnsUpdatedDto() {
-        // Given
+    @DisplayName("updateListing() - Happy Path")
+    void updateListing_HappyPath() {
         Long id = 1L;
         ListingRequest request = createMockListingRequest();
-        Listing existingListing = new Listing();
-        ListingDto expectedDto = createMockListingDto(id);
+        User user = createMockUser();
+        Listing listing = new Listing();
+        listing.setAdvertiser(user);
+        ListingDto dto = createMockListingDto(id);
 
-        when(listingRepository.findById(id)).thenReturn(Optional.of(existingListing));
-        when(listingRepository.save(any(Listing.class))).thenReturn(existingListing);
-        when(listingMapper.toDto(existingListing)).thenReturn(expectedDto);
+        when(listingRepository.findById(id)).thenReturn(Optional.of(listing));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+        when(listingRepository.save(any(Listing.class))).thenReturn(listing);
+        when(listingMapper.toDto(any(Listing.class))).thenReturn(dto);
 
-        // When
         ListingDto result = listingService.updateListing(id, request);
 
-        // Then
         assertNotNull(result);
-        verify(listingRepository).save(existingListing);
+        verify(listingRepository).save(listing);
+        verify(listingMapper).updateEntityFromRequest(request, listing);
     }
 
     @Test
-    @DisplayName("updateListing() - Worse Path: Powinien rzucić wyjątek przy próbie edycji nieistniejącego ogłoszenia")
-    void updateListing_WorsePath_NotFound() {
-        when(listingRepository.findById(anyLong())).thenReturn(Optional.empty());
-
+    @DisplayName("updateListing() - Worse Path: Not Found")
+    void updateListing_NotFound() {
+        when(listingRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> listingService.updateListing(1L, createMockListingRequest()));
     }
 
-    // ==========================================
-    // Tests for deleteListing(Long)
-    // ==========================================
-
     @Test
-    @DisplayName("deleteListing() - Happy Path: Powinien usunąć istniejące ogłoszenie")
-    void deleteListing_HappyPath_Success() {
-        // Given
+    @DisplayName("updateListing() - Worse Path: Unauthorized")
+    void updateListing_Unauthorized() {
         Long id = 1L;
-        when(listingRepository.existsById(id)).thenReturn(true);
+        User owner = createMockUser();
+        User otherUser = new User();
+        otherUser.setId(2L);
+        Listing listing = new Listing();
+        listing.setAdvertiser(owner);
 
-        // When
-        listingService.deleteListing(id);
+        when(listingRepository.findById(id)).thenReturn(Optional.of(listing));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(otherUser);
 
-        // Then
-        verify(listingRepository).deleteById(id);
+        assertThrows(RuntimeException.class, () -> listingService.updateListing(id, createMockListingRequest()));
     }
 
     @Test
-    @DisplayName("deleteListing() - Worse Path: Powinien rzucić wyjątek przy próbie usunięcia nieistniejącego ogłoszenia")
-    void deleteListing_WorsePath_NotFound() {
-        when(listingRepository.existsById(anyLong())).thenReturn(false);
+    @DisplayName("deleteListing() - Happy Path")
+    void deleteListing_HappyPath() {
+        Long id = 1L;
+        User user = createMockUser();
+        Listing listing = new Listing();
+        listing.setAdvertiser(user);
 
+        when(listingRepository.findById(id)).thenReturn(Optional.of(listing));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(user);
+
+        listingService.deleteListing(id);
+
+        verify(listingRepository).delete(listing);
+    }
+
+    @Test
+    @DisplayName("deleteListing() - Worse Path: Not Found")
+    void deleteListing_NotFound() {
+        when(listingRepository.findById(1L)).thenReturn(Optional.empty());
         assertThrows(RuntimeException.class, () -> listingService.deleteListing(1L));
     }
 
     @Test
-    @DisplayName("deleteListing() - Edge Case: Powinien rzucić IllegalArgumentException dla ID równego null")
-    void deleteListing_EdgeCase_NullId() {
+    @DisplayName("deleteListing() - Worse Path: Unauthorized")
+    void deleteListing_Unauthorized() {
+        Long id = 1L;
+        User owner = createMockUser();
+        User otherUser = new User();
+        otherUser.setId(2L);
+        Listing listing = new Listing();
+        listing.setAdvertiser(owner);
+
+        when(listingRepository.findById(id)).thenReturn(Optional.of(listing));
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(otherUser);
+
+        assertThrows(RuntimeException.class, () -> listingService.deleteListing(id));
+    }
+
+    @Test
+    @DisplayName("deleteListing() - Edge Case: Null ID")
+    void deleteListing_NullId() {
         assertThrows(IllegalArgumentException.class, () -> listingService.deleteListing(null));
     }
 }

@@ -1,11 +1,16 @@
 package com.example.universalmarketplacebe.controller;
 
+import com.example.universalmarketplacebe.dto.PageResponse;
 import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
 import com.example.universalmarketplacebe.dto.userResponse.UserDto;
+import com.example.universalmarketplacebe.model.User;
 import com.example.universalmarketplacebe.service.userService.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,8 +43,9 @@ public class UserController {
      * </pre>
      */
     @GetMapping("/me")
-    public UserDto getUser() {
-        return userService.getUser();
+    public UserDto getUser(Authentication authentication) {
+        User principal = (User) authentication.getPrincipal();
+        return userService.getUser(principal.getEmail());
     }
 
     /**
@@ -71,31 +77,39 @@ public class UserController {
      * @return Zaktualizowany UserDto, który potem nadpisze store na frontendzie.
      */
     @PutMapping("/me")
-    public UserDto updateUser(@RequestBody UserUpdateRequest user) {
-        return userService.updateUser(user);
+    public UserDto updateUser(Authentication authentication, @Valid @RequestBody UserUpdateRequest user) {
+        User principal = (User) authentication.getPrincipal();
+        return userService.updateUser(principal.getEmail(), user);
     }
 
     /**
      * Zwraca wszystkie aktywne ogłoszenia (listings) konkretnego użytkownika.
-     * Używane najczęściej w karcie podglądu publicznego profilu innej osoby.
+     * Wspiera stronicowanie i sortowanie.
      *
      * @param userId ID użytkownika-sprzedawcy.
-     * @return Lista wszystkich jego ListingDto.
+     * @param pageable Parametry stronicowania (page, size, sort).
+     * @return PageResponse z listą ListingDto.
      */
     @GetMapping("/{userId}/listings")
-    public List<ListingDto> getUserListings(@PathVariable Long userId) {
-        return userService.getUserListings(userId);
+    public PageResponse<ListingDto> getUserListings(
+            @PathVariable Long userId,
+            Pageable pageable) {
+        return userService.getUserListings(userId, pageable);
     }
 
     /**
      * Zwraca listę ocen i recenzji, które inne osoby wystawiły temu konkretnemu użytkownikowi.
+     * Wspiera stronicowanie i sortowanie.
      *
      * @param userId ID recenzowanego użytkownika.
-     * @return Lista ReviewDto.
+     * @param pageable Parametry stronicowania (page, size, sort).
+     * @return PageResponse z listą ReviewDto.
      */
     @GetMapping("/{userId}/reviews")
-    public List<ReviewDto> getUserReviews(@PathVariable Long userId) {
-        return userService.getUserReviews(userId);
+    public PageResponse<ReviewDto> getUserReviews(
+            @PathVariable Long userId,
+            Pageable pageable) {
+        return userService.getUserReviews(userId, pageable);
     }
 
 }

@@ -4,6 +4,7 @@ import com.example.universalmarketplacebe.dto.reviewRequest.ReplyRequest;
 import com.example.universalmarketplacebe.dto.reviewRequest.ReviewCreateRequest;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.service.reviewService.ReviewService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class ReviewController {
      * @return Zapisany rekord w formie ReviewDto.
      */
     @PostMapping
-    public ReviewDto createReview(@RequestBody ReviewCreateRequest request) {
+    public ReviewDto createReview(@Valid @RequestBody ReviewCreateRequest request) {
         return reviewService.createReview(request);
     }
 
@@ -42,19 +43,49 @@ public class ReviewController {
      * Użytkownik, który otrzymał recenzję, dodaje do niej tzw. "reply".
      *
      * @param id ID docelowej recenzji.
-     * @param idReply ID docelowej odpowiedzi.
+     * @param idReply ID nadrzędnej odpowiedzi (opcjonalne - używane tylko przy tworzeniu wątku odpowiedzi).
      * @param replyRequest Treść odpowiedzi.
-     * <br>Przykładowe wywołanie: {@code POST /api/reviews/10/reply}
-     * <br>Przykładowy Payload:
-     * <pre>
-     * {
-     *   "reply": "Dziękuję za zakupy, polecam się na przyszłość!"
-     * }
-     * </pre>
-     * @return Zaktualizowane ReviewDto, które zagnieżdża w sobie najnowszą odpowiedź.
+     * <br>Przykładowe wywołanie: {@code POST /api/reviews/10/reply} (pierwsza odpowiedź)
+     * <br>Przykładowe wywołanie: {@code POST /api/reviews/10/reply?idReply=5} (odpowiedź na inną odpowiedź)
+     * @return Zaktualizowane ReviewDto.
      */
-    @PostMapping("/{id}/reply/{idReply}")
-    public ReviewDto replyToReview(@PathVariable Long id,@PathVariable Long idReply, @RequestBody ReplyRequest replyRequest) {
+    @PostMapping("/{id}/reply")
+    public ReviewDto replyToReview(
+            @PathVariable Long id,
+            @RequestParam(required = false) Long idReply,
+            @Valid @RequestBody ReplyRequest replyRequest) {
         return reviewService.replyToReview(id, idReply, replyRequest);
+    }
+
+    /**
+     * Aktualizuje treść i ocenę recenzji. Tylko autor może edytować.
+     */
+    @PutMapping("/{id}")
+    public ReviewDto updateReview(@PathVariable Long id, @Valid @RequestBody ReviewCreateRequest request) {
+        return reviewService.updateReview(id, request);
+    }
+
+    /**
+     * Usuwa recenzję. Tylko autor może usunąć.
+     */
+    @DeleteMapping("/{id}")
+    public void deleteReview(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+    }
+
+    /**
+     * Aktualizuje treść odpowiedzi. Tylko autor może edytować.
+     */
+    @PutMapping("/replies/{replyId}")
+    public ReviewDto updateReply(@PathVariable Long replyId, @Valid @RequestBody ReplyRequest request) {
+        return reviewService.updateReply(replyId, request);
+    }
+
+    /**
+     * Usuwa odpowiedź. Tylko autor może usunąć.
+     */
+    @DeleteMapping("/replies/{replyId}")
+    public void deleteReply(@PathVariable Long replyId) {
+        reviewService.deleteReply(replyId);
     }
 }

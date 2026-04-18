@@ -1,7 +1,9 @@
 package com.example.universalmarketplacebe.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.SQLDelete;
@@ -13,6 +15,8 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "reviews")
 @SQLDelete(sql = "UPDATE reviews SET is_deleted = true WHERE id = ?")
 @SQLRestriction("is_deleted = false")

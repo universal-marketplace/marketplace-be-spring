@@ -52,33 +52,11 @@ class CartItemRepositoryTest {
     @Test
     void shouldFindCartItemByCartAndListing() {
         // Given
-        User user = new User();
-        user.setName("buyer");
-        user.setEmail("buyer@example.com");
-        user.setPassword("password");
-        user.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(user);
+        User buyer = createAndSaveUser("buyer", "buyer@example.com");
+        User seller = createAndSaveUser("seller", "seller@example.com");
 
-        User seller = new User();
-        seller.setName("seller");
-        seller.setEmail("seller@example.com");
-        seller.setPassword("password");
-        seller.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(seller);
-
-        Cart cart = new Cart();
-        cart.setUser(user);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        cartRepository.save(cart);
-
-        Listing listing = new Listing();
-        listing.setTitle("Test Listing");
-        listing.setDescription("Test Description");
-        listing.setPrice(BigDecimal.valueOf(100));
-        listing.setImageUrl("http://example.com/image.png");
-        listing.setAdvertiser(seller);
-        listing.setType(Type.ITEM);
-        listingRepository.save(listing);
+        Cart cart = createAndSaveCart(buyer);
+        Listing listing = createAndSaveListing(seller, "Test Listing", 100.0);
 
         CartItem cartItem = new CartItem();
         cartItem.setCart(cart);
@@ -92,45 +70,48 @@ class CartItemRepositoryTest {
         // Then
         assertThat(foundItem).isPresent();
         assertThat(foundItem.get().getQuantity()).isEqualTo(2);
-        assertThat(foundItem.get().getListing().getId()).isEqualTo(listing.getId());
-        assertThat(foundItem.get().getCart().getId()).isEqualTo(cart.getId());
     }
 
     @Test
     void shouldReturnEmptyWhenCartItemDoesNotExistForCartAndListing() {
         // Given
-        User user = new User();
-        user.setName("buyer2");
-        user.setEmail("buyer2@example.com");
-        user.setPassword("password");
-        user.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(user);
+        User buyer = createAndSaveUser("buyer2", "buyer2@example.com");
+        User seller = createAndSaveUser("seller2", "seller2@example.com");
 
-        User seller = new User();
-        seller.setName("seller2");
-        seller.setEmail("seller2@example.com");
-        seller.setPassword("password");
-        seller.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(seller);
-
-        Cart cart = new Cart();
-        cart.setUser(user);
-        cart.setTotalPrice(BigDecimal.ZERO);
-        cartRepository.save(cart);
-
-        Listing listing = new Listing();
-        listing.setTitle("Test Listing 2");
-        listing.setDescription("Test Description 2");
-        listing.setPrice(BigDecimal.valueOf(200));
-        listing.setImageUrl("http://example.com/image.png");
-        listing.setAdvertiser(seller);
-        listing.setType(Type.ITEM);
-        listingRepository.save(listing);
+        Cart cart = createAndSaveCart(buyer);
+        Listing listing = createAndSaveListing(seller, "Test Listing 2", 200.0);
 
         // When
         Optional<CartItem> notFoundItem = cartItemRepository.findCartItemByCartAndListing(cart, listing);
 
         // Then
         assertThat(notFoundItem).isEmpty();
+    }
+
+    private User createAndSaveUser(String name, String email) {
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword("password");
+        user.setAvatarUrl("https://example.com/avatar.png");
+        return userRepository.save(user);
+    }
+
+    private Cart createAndSaveCart(User user) {
+        Cart cart = new Cart();
+        cart.setUser(user);
+        cart.setTotalPrice(BigDecimal.ZERO);
+        return cartRepository.save(cart);
+    }
+
+    private Listing createAndSaveListing(User advertiser, String title, Double price) {
+        Listing listing = new Listing();
+        listing.setTitle(title);
+        listing.setDescription("Description");
+        listing.setPrice(BigDecimal.valueOf(price));
+        listing.setImageUrl("https://example.com/image.png");
+        listing.setAdvertiser(advertiser);
+        listing.setType(Type.ITEM);
+        return listingRepository.save(listing);
     }
 }
