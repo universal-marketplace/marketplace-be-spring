@@ -54,7 +54,6 @@ public class ListingController {
      *   "title": "Sprzedam Rower Męski",
      *   "description": "Rower w bardzo dobrym stanie technicznym.",
      *   "priceAmount": 550.00,
-     *   "currency": "PLN",
      *   "imageUrl": "https://example.com/bike.jpg",
      *   "tags": ["rowery", "sport"],
      *   "type": "PRODUCT"
@@ -78,7 +77,6 @@ public class ListingController {
      *   "title": "Sprzedam Rower Męski (Zaktualizowane)",
      *   "description": "Rower w obniżonej cenie!",
      *   "priceAmount": 450.00,
-     *   "currency": "PLN",
      *   "imageUrl": "https://example.com/bike.jpg",
      *   "tags": ["rowery", "sport", "promocja"],
      *   "type": "PRODUCT"

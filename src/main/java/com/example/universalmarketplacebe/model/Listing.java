@@ -31,9 +31,6 @@ public class Listing {
     @Column(name = "price", nullable = false)
     private BigDecimal price;
 
-    @Column(name = "currency", nullable = false, length = 3)
-    private String currency = "PLN";
-
     @Column(name = "unit_amount")
     private Integer unitAmount;
 

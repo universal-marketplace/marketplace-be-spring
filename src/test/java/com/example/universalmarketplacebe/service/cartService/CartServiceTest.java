@@ -78,6 +78,10 @@ class CartServiceTest {
         return new CartDto(List.of(item), new BigDecimal("100.00"));
     }
 
+    // ==========================================
+    // Tests for getCart()
+    // ==========================================
+
     @Test
     @DisplayName("getCart() - Happy Path")
     void getCart_HappyPath() {
@@ -94,6 +98,38 @@ class CartServiceTest {
         assertNotNull(result);
         verify(cartRepository).findByUserEmail(email);
     }
+
+    @Test
+    @DisplayName("getCart() - Happy Path: Create new cart for user")
+    void getCart_CreateNewCart() {
+        String email = "new@example.com";
+        User user = createMockUser();
+        CartDto dto = createMockCartDto();
+
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(cartRepository.save(any(Cart.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cartMapper.toDto(any(Cart.class))).thenReturn(dto);
+
+        CartDto result = cartService.getCart(email);
+
+        assertNotNull(result);
+        verify(cartRepository).save(any(Cart.class));
+    }
+
+    @Test
+    @DisplayName("getCart() - Worse Path: User Not Found")
+    void getCart_UserNotFound() {
+        String email = "notfound@example.com";
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.getCart(email));
+    }
+
+    // ==========================================
+    // Tests for addItemToCart()
+    // ==========================================
 
     @Test
     @DisplayName("addItemToCart() - Happy Path")
@@ -118,6 +154,63 @@ class CartServiceTest {
         assertNotNull(result);
         verify(cartItemRepository).save(any(CartItem.class));
     }
+
+    @Test
+    @DisplayName("addItemToCart() - Happy Path: Increment existing item")
+    void addItemToCart_IncrementExisting() {
+        String email = "test@example.com";
+        AddToCartRequest request = new AddToCartRequest(1L, 2);
+        Cart cart = new Cart();
+        Listing listing = createMockListing(1L);
+        CartItem cartItem = new CartItem();
+        cartItem.setQuantity(1);
+        CartDto dto = createMockCartDto();
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(cart));
+        when(listingRepository.findById(1L)).thenReturn(Optional.of(listing));
+        when(cartItemRepository.findCartItemByCartAndListing(cart, listing)).thenReturn(Optional.of(cartItem));
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+        when(cartMapper.toDto(cart)).thenReturn(dto);
+
+        cartService.addItemToCart(request);
+
+        assertEquals(3, cartItem.getQuantity());
+        verify(cartItemRepository).save(cartItem);
+    }
+
+    @Test
+    @DisplayName("addItemToCart() - Worse Path: Listing Not Found")
+    void addItemToCart_ListingNotFound() {
+        String email = "test@example.com";
+        AddToCartRequest request = new AddToCartRequest(1L, 1);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(new Cart()));
+        when(listingRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.addItemToCart(request));
+    }
+
+    @Test
+    @DisplayName("addItemToCart() - Worse Path: User Not Found")
+    void addItemToCart_UserNotFound() {
+        String email = "notfound@example.com";
+        AddToCartRequest request = new AddToCartRequest(1L, 1);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.addItemToCart(request));
+    }
+
+    // ==========================================
+    // Tests for updateItemInCart()
+    // ==========================================
 
     @Test
     @DisplayName("updateItemInCart() - Happy Path")
@@ -145,6 +238,83 @@ class CartServiceTest {
     }
 
     @Test
+    @DisplayName("updateItemInCart() - Happy Path: Remove if quantity <= 0")
+    void updateItemInCart_RemoveIfZero() {
+        String email = "test@example.com";
+        // Używamy zmiennej, aby uniknąć ostrzeżeń analizy statycznej dotyczących @Min(1) w rekordzie.
+        // Testujemy odporność serwisu na dane, które mogłyby teoretycznie ominąć walidację wejściową.
+        int zeroQuantity = 0;
+        AddToCartRequest request = new AddToCartRequest(1L, zeroQuantity);
+        Cart cart = new Cart();
+        cart.setCartItems(new ArrayList<>());
+        Listing listing = createMockListing(1L);
+        CartItem cartItem = new CartItem();
+        cart.getCartItems().add(cartItem);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(cart));
+        when(listingRepository.findById(1L)).thenReturn(Optional.of(listing));
+        when(cartItemRepository.findCartItemByCartAndListing(cart, listing)).thenReturn(Optional.of(cartItem));
+        when(cartRepository.save(any(Cart.class))).thenReturn(cart);
+        when(cartMapper.toDto(cart)).thenReturn(createMockCartDto());
+
+        cartService.updateItemInCart(request);
+
+        assertTrue(cart.getCartItems().isEmpty());
+        verify(cartItemRepository).delete(cartItem);
+    }
+
+    @Test
+    @DisplayName("updateItemInCart() - Worse Path: User Not Found")
+    void updateItemInCart_UserNotFound() {
+        String email = "notfound@example.com";
+        AddToCartRequest request = new AddToCartRequest(1L, 1);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.updateItemInCart(request));
+    }
+
+    @Test
+    @DisplayName("updateItemInCart() - Worse Path: Listing Not Found")
+    void updateItemInCart_ListingNotFound() {
+        String email = "test@example.com";
+        AddToCartRequest request = new AddToCartRequest(1L, 1);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(new Cart()));
+        when(listingRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.updateItemInCart(request));
+    }
+
+    @Test
+    @DisplayName("updateItemInCart() - Worse Path: Item Not In Cart")
+    void updateItemInCart_ItemNotFound() {
+        String email = "test@example.com";
+        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        Cart cart = new Cart();
+        Listing listing = createMockListing(1L);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(cart));
+        when(listingRepository.findById(1L)).thenReturn(Optional.of(listing));
+        when(cartItemRepository.findCartItemByCartAndListing(cart, listing)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.updateItemInCart(request));
+    }
+
+    // ==========================================
+    // Tests for removeItemFromCart()
+    // ==========================================
+
+    @Test
     @DisplayName("removeItemFromCart() - Happy Path")
     void removeItemFromCart_HappyPath() {
         String email = "test@example.com";
@@ -168,5 +338,50 @@ class CartServiceTest {
 
         assertNotNull(result);
         verify(cartItemRepository).delete(cartItem);
+    }
+
+    @Test
+    @DisplayName("removeItemFromCart() - Worse Path: Item Not In Cart")
+    void removeItemFromCart_ItemNotFound() {
+        String email = "test@example.com";
+        Long listingId = 1L;
+        Cart cart = new Cart();
+        Listing listing = createMockListing(listingId);
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(cart));
+        when(listingRepository.findById(listingId)).thenReturn(Optional.of(listing));
+        when(cartItemRepository.findCartItemByCartAndListing(cart, listing)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.removeItemFromCart(listingId));
+    }
+
+    @Test
+    @DisplayName("removeItemFromCart() - Worse Path: Listing Not Found")
+    void removeItemFromCart_ListingNotFound() {
+        String email = "test@example.com";
+        Long listingId = 1L;
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.of(new Cart()));
+        when(listingRepository.findById(listingId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.removeItemFromCart(listingId));
+    }
+
+    @Test
+    @DisplayName("removeItemFromCart() - Worse Path: User Not Found")
+    void removeItemFromCart_UserNotFound() {
+        String email = "notfound@example.com";
+        Long listingId = 1L;
+
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn(email);
+        when(cartRepository.findByUserEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> cartService.removeItemFromCart(listingId));
     }
 }

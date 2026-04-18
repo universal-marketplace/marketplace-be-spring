@@ -38,7 +38,7 @@ class UserRepositoryTest {
         user.setName("testuser");
         user.setEmail("testuser@example.com");
         user.setPassword("password");
-        user.setAvatarUrl("http://example.com/avatar.jpg");
+        user.setAvatarUrl("https://example.com/avatar.jpg");
         
         // When
         User savedUser = userRepository.save(user);
@@ -49,5 +49,36 @@ class UserRepositoryTest {
         Optional<User> foundUser = userRepository.findById(savedUser.getId());
         assertThat(foundUser).isPresent();
         assertThat(foundUser.get().getName()).isEqualTo("testuser");
+    }
+
+    @Test
+    void shouldFindUserByEmailWhenUserExists() {
+        // Given
+        String email = "findme@example.com";
+        User user = new User();
+        user.setName("findme");
+        user.setEmail(email);
+        user.setPassword("password");
+        user.setAvatarUrl("https://example.com/avatar.jpg");
+        userRepository.save(user);
+
+        // When
+        Optional<User> foundUser = userRepository.findByEmail(email);
+
+        // Then
+        assertThat(foundUser).isPresent();
+        assertThat(foundUser.get().getEmail()).isEqualTo(email);
+    }
+
+    @Test
+    void shouldReturnEmptyOptionalWhenEmailDoesNotExist() {
+        // Given
+        String nonExistentEmail = "notfound@example.com";
+
+        // When
+        Optional<User> foundUser = userRepository.findByEmail(nonExistentEmail);
+
+        // Then
+        assertThat(foundUser).isEmpty();
     }
 }

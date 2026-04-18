@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
@@ -18,7 +21,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Testcontainers
@@ -44,18 +46,13 @@ class ListingRepositoryTest {
     @Test
     void shouldSaveAndFindListing() {
         // Given
-        User advertiser = new User();
-        advertiser.setName("advertiser");
-        advertiser.setEmail("advertiser@example.com");
-        advertiser.setPassword("password");
-        advertiser.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(advertiser);
+        User advertiser = createAndSaveUser("advertiser", "advertiser@example.com");
 
         Listing listing = new Listing();
         listing.setTitle("Test Title");
         listing.setDescription("Test Description");
         listing.setPrice(BigDecimal.valueOf(100.0));
-        listing.setImageUrl("http://example.com/image.png");
+        listing.setImageUrl("https://example.com/image.png");
         listing.setAdvertiser(advertiser);
         listing.setType(Type.ITEM);
 
@@ -72,46 +69,12 @@ class ListingRepositoryTest {
     @Test
     void shouldFindAllListingsByAdvertiserId() {
         // Given
-        User advertiser = new User();
-        advertiser.setName("advertiser2");
-        advertiser.setEmail("advertiser2@example.com");
-        advertiser.setPassword("password");
-        advertiser.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(advertiser);
+        User advertiser = createAndSaveUser("advertiser2", "advertiser2@example.com");
+        User anotherAdvertiser = createAndSaveUser("advertiser3", "advertiser3@example.com");
 
-        User anotherAdvertiser = new User();
-        anotherAdvertiser.setName("advertiser3");
-        anotherAdvertiser.setEmail("advertiser3@example.com");
-        anotherAdvertiser.setPassword("password");
-        anotherAdvertiser.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(anotherAdvertiser);
-
-        Listing listing1 = new Listing();
-        listing1.setTitle("Test Title 1");
-        listing1.setDescription("Test Description 1");
-        listing1.setPrice(BigDecimal.valueOf(100.0));
-        listing1.setImageUrl("http://example.com/image1.png");
-        listing1.setAdvertiser(advertiser);
-        listing1.setType(Type.ITEM);
-        listingRepository.save(listing1);
-
-        Listing listing2 = new Listing();
-        listing2.setTitle("Test Title 2");
-        listing2.setDescription("Test Description 2");
-        listing2.setPrice(BigDecimal.valueOf(200.0));
-        listing2.setImageUrl("http://example.com/image2.png");
-        listing2.setAdvertiser(advertiser);
-        listing2.setType(Type.SERVICE);
-        listingRepository.save(listing2);
-
-        Listing listing3 = new Listing();
-        listing3.setTitle("Test Title 3");
-        listing3.setDescription("Test Description 3");
-        listing3.setPrice(BigDecimal.valueOf(300.0));
-        listing3.setImageUrl("http://example.com/image3.png");
-        listing3.setAdvertiser(anotherAdvertiser);
-        listing3.setType(Type.ITEM);
-        listingRepository.save(listing3);
+        createAndSaveListing(advertiser, "Test Title 1", 100.0, Type.ITEM);
+        createAndSaveListing(advertiser, "Test Title 2", 200.0, Type.SERVICE);
+        createAndSaveListing(anotherAdvertiser, "Test Title 3", 300.0, Type.ITEM);
 
         // When
         List<Listing> advertiserListings = listingRepository.findAllByAdvertiserId(advertiser.getId());
@@ -123,19 +86,67 @@ class ListingRepositoryTest {
     }
 
     @Test
+    void shouldFindAllListingsByAdvertiserIdWithPagination() {
+        // Given
+        User advertiser = createAndSaveUser("advertiser_pag", "advertiser_pag@example.com");
+        createAndSaveListing(advertiser, "Title 1", 10.0, Type.ITEM);
+        createAndSaveListing(advertiser, "Title 2", 20.0, Type.ITEM);
+        createAndSaveListing(advertiser, "Title 3", 30.0, Type.ITEM);
+
+        Pageable pageable = PageRequest.of(0, 2);
+
+        // When
+        Page<Listing> page = listingRepository.findAllByAdvertiserId(advertiser.getId(), pageable);
+
+        // Then
+        assertThat(page.getTotalElements()).isEqualTo(3);
+        assertThat(page.getContent()).hasSize(2);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+    }
+
+    @Test
     void shouldReturnEmptyListWhenAdvertiserHasNoListings() {
         // Given
-        User advertiserWithoutListings = new User();
-        advertiserWithoutListings.setName("advertiser4");
-        advertiserWithoutListings.setEmail("advertiser4@example.com");
-        advertiserWithoutListings.setPassword("password");
-        advertiserWithoutListings.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(advertiserWithoutListings);
+        User advertiserWithoutListings = createAndSaveUser("advertiser4", "advertiser4@example.com");
 
         // When
         List<Listing> emptyListings = listingRepository.findAllByAdvertiserId(advertiserWithoutListings.getId());
 
         // Then
         assertThat(emptyListings).isEmpty();
+    }
+
+    @Test
+    void shouldReturnEmptyPageWhenAdvertiserHasNoListingsWithPagination() {
+        // Given
+        User advertiser = createAndSaveUser("advertiser_empty_pag", "empty_pag@example.com");
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When
+        Page<Listing> page = listingRepository.findAllByAdvertiserId(advertiser.getId(), pageable);
+
+        // Then
+        assertThat(page.getTotalElements()).isZero();
+        assertThat(page.getContent()).isEmpty();
+    }
+
+    private User createAndSaveUser(String name, String email) {
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword("password");
+        user.setAvatarUrl("https://example.com/" + name + ".jpg");
+        return userRepository.save(user);
+    }
+
+    private void createAndSaveListing(User advertiser, String title, Double price, Type type) {
+        Listing listing = new Listing();
+        listing.setTitle(title);
+        listing.setDescription("Description");
+        listing.setPrice(BigDecimal.valueOf(price));
+        listing.setImageUrl("https://example.com/image.png");
+        listing.setAdvertiser(advertiser);
+        listing.setType(type);
+        listingRepository.save(listing);
     }
 }

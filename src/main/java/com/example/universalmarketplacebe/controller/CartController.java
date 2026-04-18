@@ -27,18 +27,16 @@ public class CartController {
      * <br>Przykładowy zwrot:
      * <pre>
      * {
-     *   "id": 1,
-     *   "userId": 1,
      *   "items": [
      *     {
-     *       "id": 1,
      *       "listingId": 10,
-     *       "listingTitle": "Laptop",
+     *       "title": "Laptop",
+     *       "unitPrice": 2000.00,
      *       "quantity": 1,
-     *       "price": "2000.00 PLN"
+     *       "subtotal": 2000.00
      *     }
      *   ],
-     *   "totalPrice": "2000.00 PLN"
+     *   "totalPrice": 2000.00
      * }
      * </pre>
      */

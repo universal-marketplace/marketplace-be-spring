@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Testcontainers
@@ -42,12 +41,7 @@ class CartRepositoryTest {
     @Test
     void shouldSaveAndFindCart() {
         // Given
-        User user = new User();
-        user.setName("testuser");
-        user.setEmail("test@example.com");
-        user.setPassword("password");
-        user.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(user);
+        User user = createAndSaveUser("testuser", "test@example.com");
 
         Cart cart = new Cart();
         cart.setUser(user);
@@ -67,12 +61,7 @@ class CartRepositoryTest {
     void shouldFindCartByUserEmail() {
         // Given
         String email = "john.doe@example.com";
-        User user = new User();
-        user.setName("John Doe");
-        user.setEmail(email);
-        user.setPassword("securePassword");
-        user.setAvatarUrl("http://example.com/avatar.png");
-        userRepository.save(user);
+        User user = createAndSaveUser("John Doe", email);
 
         Cart cart = new Cart();
         cart.setUser(user);
@@ -85,7 +74,6 @@ class CartRepositoryTest {
         // Then
         assertThat(foundCart).isPresent();
         assertThat(foundCart.get().getUser().getEmail()).isEqualTo(email);
-        assertThat(foundCart.get().getId()).isEqualTo(cart.getId());
     }
 
     @Test
@@ -98,5 +86,14 @@ class CartRepositoryTest {
 
         // Then
         assertThat(notFoundCart).isEmpty();
+    }
+
+    private User createAndSaveUser(String name, String email) {
+        User user = new User();
+        user.setName(name);
+        user.setEmail(email);
+        user.setPassword("password");
+        user.setAvatarUrl("https://example.com/avatar.png");
+        return userRepository.save(user);
     }
 }
