@@ -18,8 +18,12 @@ import com.example.universalmarketplacebe.repository.userRepository.UserReposito
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -48,6 +52,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDto updateUser(String email, UserUpdateRequest user) {
         User existingUser = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
         
@@ -61,8 +66,17 @@ public class UserServiceImpl implements UserService {
         }
         
         userMapper.updateEntityFromRequest(user, existingUser);
-        userRepository.save(existingUser);
-        return userMapper.toDto(existingUser);
+        User updatedUser = userRepository.save(existingUser);
+
+        Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+                updatedUser,
+                currentAuth.getCredentials(),
+                currentAuth.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
+
+        return userMapper.toDto(updatedUser);
     }
 
     @Override
