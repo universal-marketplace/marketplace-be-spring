@@ -1,5 +1,6 @@
 package com.example.universalmarketplacebe.service.userService;
 
+import com.example.universalmarketplacebe.dto.PageResponse;
 import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
@@ -19,6 +20,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,18 +66,22 @@ class UserServiceTest {
     }
 
     // ==========================================
-    // Tests for getUser() (Current logged-in user)
+    // Tests for getUser(String email)
     // ==========================================
 
     @Test
-    @DisplayName("getUser() - Happy Path: Powinien zwrócić aktualnie zalogowanego użytkownika")
-    void getUser_HappyPath_ReturnsCurrentUser() {
+    @DisplayName("getUser(String) - Happy Path: Powinien zwrócić aktualnie zalogowanego użytkownika po emailu")
+    void getUser_HappyPath_ReturnsCurrentUserByEmail() {
         // Given
+        String email = "test@example.com";
+        User mockUser = new User();
         UserDto expectedDto = createMockUserDto();
-        when(userMapper.toDto(any(User.class))).thenReturn(expectedDto);
+        
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
+        when(userMapper.toDto(mockUser)).thenReturn(expectedDto);
 
         // When
-        UserDto result = userService.getUser();
+        UserDto result = userService.getUser(email);
 
         // Then
         assertNotNull(result, "Wynik nie powinien być nullem");
@@ -80,10 +89,13 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("getUser() - Worse Path: Powinien rzucić wyjątek gdy brak zalogowanego użytkownika")
-    void getUser_WorsePath_ThrowsExceptionWhenNotAuthenticated() {
-        assertThrows(RuntimeException.class, () -> userService.getUser(),
-                "Powinien rzucić wyjątek gdy mechanizm pobierania aktualnego użytkownika zawiedzie");
+    @DisplayName("getUser(String) - Worse Path: Powinien rzucić wyjątek gdy brak użytkownika o danym emailu")
+    void getUser_WorsePath_ThrowsExceptionWhenUserNotFoundByEmail() {
+        String email = "notfound@example.com";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        
+        assertThrows(IllegalArgumentException.class, () -> userService.getUser(email),
+                "Powinien rzucić wyjątek gdy użytkownik nie zostanie znaleziony w bazie danych");
     }
 
     // ==========================================
@@ -118,7 +130,7 @@ class UserServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         // When & Then
-        assertThrows(RuntimeException.class, () -> userService.getUser(userId),
+        assertThrows(IllegalArgumentException.class, () -> userService.getUser(userId),
                 "Powinien rzucić wyjątek gdy użytkownik o danym ID nie został znaleziony");
         
         verify(userRepository, times(1)).findById(userId);
@@ -128,55 +140,73 @@ class UserServiceTest {
     @DisplayName("getUser(Long) - Edge Case: Powinien rzucić wyjątek (IllegalArgumentException) gdy ID to null")
     void getUserById_EdgeCase_ThrowsExceptionWhenIdIsNull() {
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> userService.getUser(null),
+        assertThrows(IllegalArgumentException.class, () -> userService.getUser((Long)null),
                 "Powinien rzucić wyjątek IllegalArgumentException, gdy przekazane ID to null");
     }
 
     @Test
     @DisplayName("getUser(Long) - Edge Case: Powinien rzucić wyjątek (IllegalArgumentException) gdy ID jest ujemne lub zerowe")
     void getUserById_EdgeCase_ThrowsExceptionWhenIdIsNegativeOrZero() {
+        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> userService.getUser(-1L));
+        
+        when(userRepository.findById(0L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> userService.getUser(0L));
     }
 
     // ==========================================
-    // Tests for updateUser(UserUpdateRequest request)
+    // Tests for updateUser(String email, UserUpdateRequest request)
     // ==========================================
 
     @Test
     @DisplayName("updateUser() - Happy Path: Powinien zaktualizować i zwrócić zaktualizowanego użytkownika")
     void updateUser_HappyPath_UpdatesAndReturnsUser() {
         // Given
+        String email = "test@example.com";
         UserUpdateRequest request = createMockUpdateRequest();
-        User updatedUser = new User();
+        User existingUser = new User();
         UserDto expectedDto = createMockUserDto();
 
-        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
-        when(userMapper.toDto(updatedUser)).thenReturn(expectedDto);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail(request.email())).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+        when(userMapper.toDto(existingUser)).thenReturn(expectedDto);
 
         // When
-        UserDto result = userService.updateUser(request);
+        UserDto result = userService.updateUser(email, request);
 
         // Then
         assertNotNull(result, "Wynik nie powinien być nullem");
         assertEquals(expectedDto, result, "Powinien zwrócić DTO zaktualizowanego użytkownika");
+        verify(userMapper).updateEntityFromRequest(request, existingUser);
     }
 
     @Test
     @DisplayName("updateUser() - Worse Path: Powinien rzucić wyjątek, jeśli użytkownik nie istnieje")
     void updateUser_WorsePath_ThrowsExceptionWhenUserNotFound() {
         // Given
+        String email = "notfound@example.com";
         UserUpdateRequest request = createMockUpdateRequest();
 
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
         // When & Then
-        assertThrows(RuntimeException.class, () -> userService.updateUser(request));
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(email, request));
     }
 
     @Test
-    @DisplayName("updateUser() - Edge Case: Powinien rzucić IllegalArgumentException gdy podany Request to null")
-    void updateUser_EdgeCase_ThrowsExceptionWhenRequestIsNull() {
+    @DisplayName("updateUser() - Worse Path: Powinien rzucić wyjątek, jeśli nowy email jest już zajęty")
+    void updateUser_WorsePath_ThrowsExceptionWhenNewEmailAlreadyExists() {
+        // Given
+        String email = "test@example.com";
+        UserUpdateRequest request = createMockUpdateRequest();
+        User existingUser = new User();
+        
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail(request.email())).thenReturn(Optional.of(new User()));
+
         // When & Then
-        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(null));
+        assertThrows(IllegalArgumentException.class, () -> userService.updateUser(email, request));
     }
 
     // ==========================================
@@ -184,68 +214,77 @@ class UserServiceTest {
     // ==========================================
 
     @Test
-    @DisplayName("getUserListings(Long) - Happy Path: Powinien zwrócić listę ogłoszeń przypisanych do użytkownika")
+    @DisplayName("getUserListings(Long, Pageable) - Happy Path: Powinien zwrócić listę ogłoszeń przypisanych do użytkownika")
     void getUserListings_HappyPath_ReturnsListings() {
         // Given
         Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
         Listing listing = new Listing();
         List<Listing> listings = List.of(listing);
-        ListingDto listingDto = new ListingDto(1L, "Title", "Desc", "10.00 PLN", "url", userId, "Name", "Avatar", 5.0, 1, List.of("tag"), "TYPE");
-        List<ListingDto> expectedDtos = List.of(listingDto);
+        Page<Listing> listingPage = new PageImpl<>(listings, pageable, 1);
+        
+        ListingDto listingDto = new ListingDto(1L, "Title", "Desc", "10.00 PLN", "url", userId, "Name", "Avatar", 5.0, 1, List.of("tag"), "PRODUCT");
 
-        when(listingRepository.findAllByAdvertiserId(userId)).thenReturn(listings);
-        when(listingMapper.toDtoList(listings)).thenReturn(expectedDtos);
+        when(listingRepository.findAllByAdvertiserId(userId, pageable)).thenReturn(listingPage);
+        when(listingMapper.toDto(any(Listing.class))).thenReturn(listingDto);
 
         // When
-        List<ListingDto> result = userService.getUserListings(userId);
+        PageResponse<ListingDto> result = userService.getUserListings(userId, pageable);
 
         // Then
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(expectedDtos, result);
-        verify(listingRepository).findAllByAdvertiserId(userId);
+        assertEquals(1, result.content().size());
+        assertEquals(listingDto, result.content().get(0));
+        assertEquals(1, result.totalElements());
+        verify(listingRepository).findAllByAdvertiserId(userId, pageable);
     }
 
     @Test
-    @DisplayName("getUserListings(Long) - Edge Case: Powinien rzucić IllegalArgumentException dla ID równego null lub <= 0")
+    @DisplayName("getUserListings(Long, Pageable) - Edge Case: Powinien rzucić IllegalArgumentException dla ID równego null lub <= 0")
     void getUserListings_EdgeCase_ThrowsExceptionWhenIdIsInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserListings(null));
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserListings(0L));
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserListings(-1L));
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserListings(null, pageable));
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserListings(0L, pageable));
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserListings(-1L, pageable));
     }
 
     // ==========================================
-    // Tests for getUserReviews(Long userId)
+    // Tests for getUserReviews(Long userId, Pageable pageable)
     // ==========================================
 
     @Test
-    @DisplayName("getUserReviews(Long) - Happy Path: Powinien zwrócić listę opinii o użytkowniku")
+    @DisplayName("getUserReviews(Long, Pageable) - Happy Path: Powinien zwrócić listę opinii o użytkowniku")
     void getUserReviews_HappyPath_ReturnsReviews() {
         // Given
         Long userId = 1L;
+        Pageable pageable = PageRequest.of(0, 10);
         Review review = new Review();
         List<Review> reviews = List.of(review);
+        Page<Review> reviewPage = new PageImpl<>(reviews, pageable, 1);
         ReviewDto reviewDto = new ReviewDto(1L, 2L, "Author", "Avatar", userId, 5, "Great", LocalDateTime.now(), "Thanks", LocalDateTime.now());
-        List<ReviewDto> expectedDtos = List.of(reviewDto);
 
-        when(reviewRepository.findAllByTargetUserId(userId)).thenReturn(reviews);
-        when(reviewMapper.toDtoList(reviews)).thenReturn(expectedDtos);
+        when(reviewRepository.findAllByTargetUserId(userId, pageable)).thenReturn(reviewPage);
+        when(reviewMapper.toDto(any(Review.class))).thenReturn(reviewDto);
 
         // When
-        List<ReviewDto> result = userService.getUserReviews(userId);
+        PageResponse<ReviewDto> result = userService.getUserReviews(userId, pageable);
 
         // Then
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(expectedDtos, result);
-        verify(reviewRepository).findAllByTargetUserId(userId);
+        assertEquals(1, result.content().size());
+        assertEquals(reviewDto, result.content().get(0));
+        assertEquals(1, result.totalElements());
+        assertEquals(1, result.totalPages());
+        verify(reviewRepository).findAllByTargetUserId(userId, pageable);
+        verify(reviewMapper, times(1)).toDto(any(Review.class));
     }
 
     @Test
-    @DisplayName("getUserReviews(Long) - Edge Case: Powinien rzucić IllegalArgumentException dla ID równego null lub <= 0")
+    @DisplayName("getUserReviews(Long, Pageable) - Edge Case: Powinien rzucić IllegalArgumentException dla ID równego null lub <= 0")
     void getUserReviews_EdgeCase_ThrowsExceptionWhenIdIsInvalid() {
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserReviews(null));
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserReviews(0L));
-        assertThrows(IllegalArgumentException.class, () -> userService.getUserReviews(-1L));
+        Pageable pageable = PageRequest.of(0, 10);
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserReviews(null, pageable));
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserReviews(0L, pageable));
+        assertThrows(IllegalArgumentException.class, () -> userService.getUserReviews(-1L, pageable));
     }
 }

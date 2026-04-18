@@ -23,7 +23,6 @@ public interface ListingMapper {
     @Mapping(target = "advertiserAvatar", source = "advertiser.avatarUrl")
     @Mapping(target = "rating", source = "advertiser.rating")
     @Mapping(target = "reviewCount", source = "advertiser.reviewCount")
-    @Mapping(target = "price", source = ".", qualifiedByName = "formatPrice")
     ListingDto toDto(Listing listing);
 
     /**
@@ -50,16 +49,4 @@ public interface ListingMapper {
     @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "price", source = "priceAmount")
     void updateEntityFromRequest(ListingRequest request, @MappingTarget Listing listing);
-
-    /**
-     * Formatuje cenę na czytelny format String, np. "100.00 PLN"
-     */
-    @Named("formatPrice")
-    default String formatPrice(Listing listing) {
-        if (listing == null || listing.getPrice() == null) {
-            return "0.00";
-        }
-        String currency = listing.getCurrency() != null ? listing.getCurrency() : "PLN";
-        return String.format("%.2f %s", listing.getPrice().doubleValue(), currency);
-    }
 }

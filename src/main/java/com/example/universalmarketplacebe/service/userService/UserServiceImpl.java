@@ -1,5 +1,6 @@
 package com.example.universalmarketplacebe.service.userService;
 
+import com.example.universalmarketplacebe.dto.PageResponse;
 import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.dto.userRequest.RegisterRequest;
@@ -15,6 +16,8 @@ import com.example.universalmarketplacebe.repository.listingRepository.ListingRe
 import com.example.universalmarketplacebe.repository.reviewRepository.ReviewRepository;
 import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,8 +36,9 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserDto getUser() {
-        return null;
+    public UserDto getUser(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return userMapper.toDto(user);
     }
 
     @Override
@@ -44,26 +48,41 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserUpdateRequest user) {
-        return null;
+    public UserDto updateUser(String email, UserUpdateRequest user) {
+        User existingUser = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
+        
+        if (user.email() != null && !user.email().equals(email)) {
+            if (userRepository.findByEmail(user.email()).isPresent()) {
+                throw new IllegalArgumentException("User with this email already exists");
+            }
+            if (user.emailRepeated() == null || !user.email().equals(user.emailRepeated())) {
+                throw new IllegalArgumentException("Emails do not match");
+            }
+        }
+        
+        userMapper.updateEntityFromRequest(user, existingUser);
+        userRepository.save(existingUser);
+        return userMapper.toDto(existingUser);
     }
 
     @Override
-    public List<ListingDto> getUserListings(Long userId) {
+    public PageResponse<ListingDto> getUserListings(Long userId, Pageable pageable) {
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("Invalid user ID");
         }
-        List<Listing> allByAdvertiserId = listingRepository.findAllByAdvertiserId(userId);
-        return listingMapper.toDtoList(allByAdvertiserId);
+        Page<Listing> listingPage = listingRepository.findAllByAdvertiserId(userId, pageable);
+        Page<ListingDto> dtoPage = listingPage.map(listingMapper::toDto);
+        return new PageResponse<>(dtoPage);
     }
 
     @Override
-    public List<ReviewDto> getUserReviews(Long userId) {
+    public PageResponse<ReviewDto> getUserReviews(Long userId, Pageable pageable) {
         if (userId == null || userId <= 0) {
             throw new IllegalArgumentException("Invalid user ID");
         }
-        List<Review> allByTargetUserId = reviewRepository.findAllByTargetUserId(userId);
-        return reviewMapper.toDtoList(allByTargetUserId);
+        Page<Review> reviewPage = reviewRepository.findAllByTargetUserId(userId, pageable);
+        Page<ReviewDto> dtoPage = reviewPage.map(reviewMapper::toDto);
+        return new PageResponse<>(dtoPage);
     }
 
     @Override

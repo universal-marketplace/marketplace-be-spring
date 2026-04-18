@@ -2,11 +2,13 @@ package com.example.universalmarketplacebe.mapper;
 
 import com.example.universalmarketplacebe.configuration.MapperConfig;
 import com.example.universalmarketplacebe.dto.reviewRequest.ReviewCreateRequest;
+import com.example.universalmarketplacebe.dto.reviewResponse.ReplyDto;
 import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
 import com.example.universalmarketplacebe.model.Reply;
 import com.example.universalmarketplacebe.model.Review;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 
 import java.util.List;
@@ -15,27 +17,42 @@ import java.util.List;
 public interface ReviewMapper {
 
     /**
-     * Mapuje encję Review na ReviewDto.
-     * Wyciąga dane autora oraz treść pierwszej odpowiedzi (jeśli istnieje).
+     * Mapuje encję Review na ReviewDto z pełną listą odpowiedzi.
      */
     @Mapping(target = "authorId", source = "author.id")
     @Mapping(target = "authorName", source = "author.name")
     @Mapping(target = "authorAvatar", source = "author.avatarUrl")
     @Mapping(target = "targetId", source = "targetUser.id")
     @Mapping(target = "date", source = "createdAt")
-    @Mapping(target = "reply", source = "replies", qualifiedByName = "getLatestReplyComment")
-    @Mapping(target = "replyDate", source = "replies", qualifiedByName = "getLatestReplyDate")
+    @Mapping(target = "replies", source = "replies", qualifiedByName = "mapOnlyRootReplies")
     ReviewDto toDto(Review review);
 
     /**
-     * Mapuje listę encji Review na listę ReviewDto.
+     * Mapuje encję Reply na ReplyDto (rekurencyjnie dla dzieci).
      */
+    @Mapping(target = "authorId", source = "user.id")
+    @Mapping(target = "authorName", source = "user.name")
+    @Mapping(target = "authorAvatar", source = "user.avatarUrl")
+    @Mapping(target = "replies", source = "childReplies")
+    ReplyDto toReplyDto(Reply reply);
+
+    List<ReplyDto> toReplyDtoList(List<Reply> replies);
+
     List<ReviewDto> toDtoList(List<Review> reviews);
 
     /**
-     * Mapuje request utworzenia recenzji na encję Review.
-     * Pola author i targetUser muszą zostać ustawione ręcznie w serwisie.
+     * Pomocnicza metoda, która filtruje tylko główne odpowiedzi (te bez rodzica), 
+     * aby nie dublować zagnieżdżonych odpowiedzi na głównej liście.
      */
+    @Named("mapOnlyRootReplies")
+    default List<ReplyDto> mapOnlyRootReplies(List<Reply> replies) {
+        if (replies == null) return null;
+        return replies.stream()
+                .filter(r -> r.getParentReply() == null)
+                .map(this::toReplyDto)
+                .toList();
+    }
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "targetUser", ignore = true)
@@ -43,20 +60,4 @@ public interface ReviewMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "isDeleted", ignore = true)
     Review toEntity(ReviewCreateRequest request);
-
-    @Named("getLatestReplyComment")
-    default String getLatestReplyComment(List<Reply> replies) {
-        if (replies == null || replies.isEmpty()) {
-            return null;
-        }
-        return replies.get(0).getComment();
-    }
-
-    @Named("getLatestReplyDate")
-    default java.time.LocalDateTime getLatestReplyDate(List<Reply> replies) {
-        if (replies == null || replies.isEmpty()) {
-            return null;
-        }
-        return replies.get(0).getCreatedAt();
-    }
 }

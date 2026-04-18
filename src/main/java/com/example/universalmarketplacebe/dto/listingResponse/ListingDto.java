@@ -1,12 +1,13 @@
 package com.example.universalmarketplacebe.dto.listingResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record ListingDto(
         Long id,
         String title,
         String description,
-        String price,
+        BigDecimal price,
         String imageUrl,
         Long advertiserId,
         String advertiserName,

@@ -28,8 +28,8 @@ public interface CartMapper {
     @Mapping(target = "listingId", source = "listing.id")
     @Mapping(target = "title", source = "listing.title")
     @Mapping(target = "unitPrice", source = "listing.price")
-    @Mapping(target = "quantity", constant = "1") // Domyślnie 1, jeśli Twoja logika nie zakłada pola quantity w CartItem
-    @Mapping(target = "subtotal", source = "listing.price") // Subtotal to w tym przypadku po prostu cena (jeśli brak ilości)
+    @Mapping(target = "quantity", source = "quantity")
+    @Mapping(target = "subtotal", expression = "java(cartItem.getListing().getPrice().multiply(java.math.BigDecimal.valueOf(cartItem.getQuantity())))")
     CartItemDto toItemDto(CartItem cartItem);
 
     /**
