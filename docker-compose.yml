@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres
+    restart: always
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=marketplace
+    ports:
+      - "5432:5432"
+  app:
+    build: .
+    depends_on:
+      - db
+    image: posts-service
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./.env
+    environment:
+      SPRING_APPLICATION_JSON: '{"spring.application.name":"universal-marketplace-be",
+      "spring.datasource.driver-class-name":"org.postgresql.Driver",
+      "spring.datasource.url":"jdbc:postgresql://db:5432/marketplace",
+      "spring.datasource.username":"postgres",
+      "spring.datasource.password":"password",
+      "spring.jpa.hibernate.ddl-auto":"create-drop",
+      "jwt.expiration.hour":"24",
+      "jwt.secret":"${jwt-secret:polkmiujhbtrfdxsqsdxcwedfgvbthjm}"
+      }'

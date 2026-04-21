@@ -37,35 +37,38 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth -> auth
-                                .requestMatchers(
-                                        "/api/auth/**",
-                                        "/api/listings/**",
-                                        "/api/reviews/**",
-                                        "/api/users/*",
-                                        "/api/users/*/listings",
-                                        "/api/users/*/reviews",
-                                        "/error",
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs/**"
-                                ).permitAll()
-                                .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .userDetailsService(userDetailsService)
-                .build();
+            .cors(Customizer.withDefaults())
+            .csrf(AbstractHttpConfigurer::disable)
+            .authorizeHttpRequests(
+                    auth -> auth
+                            .requestMatchers(
+                                    "/api/auth/**",
+                                    "/api/listings/**",
+                                    "/api/reviews/**",
+                                    "/api/users/*",
+                                    "/api/users/*/listings",
+                                    "/api/users/*/reviews",
+                                    "/error",
+                                    "/swagger-ui.html",
+                                    "/swagger-ui/**",
+                                    "/v3/api-docs/**",
+                                    "/swagger-resources/**",
+                                    "/webjars/**"
+                            ).permitAll()
+                            .anyRequest().authenticated()
+            )
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .userDetailsService(userDetailsService)
+            .build();
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:4200")); // Adres Angulara
+        configuration.setAllowedOrigins(List.of("http://localhost", "http://localhost:80", "http://localhost:4200"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
