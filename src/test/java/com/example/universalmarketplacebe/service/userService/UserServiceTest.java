@@ -140,11 +140,13 @@ class UserServiceTest {
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(existingUser));
         when(userRepository.findByEmail(request.email())).thenReturn(Optional.empty());
-        when(userMapper.toDto(existingUser)).thenReturn(expectedDto);
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+        when(userMapper.toDto(any(User.class))).thenReturn(expectedDto);
 
         UserDto result = userService.updateUser(email, request);
 
         assertNotNull(result);
+        assertEquals(expectedDto, result);
         verify(userRepository).save(existingUser);
     }
 
