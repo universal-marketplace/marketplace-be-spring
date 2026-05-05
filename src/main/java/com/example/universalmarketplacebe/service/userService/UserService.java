@@ -1,11 +1,11 @@
 package com.example.universalmarketplacebe.service.userService;
 
-import com.example.universalmarketplacebe.dto.PageResponse;
-import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
-import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
-import com.example.universalmarketplacebe.dto.userRequest.RegisterRequest;
-import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
-import com.example.universalmarketplacebe.dto.userResponse.UserDto;
+import com.example.universalmarketplacebe.dto.response.PageResponse;
+import com.example.universalmarketplacebe.dto.response.ListingDto;
+import com.example.universalmarketplacebe.dto.response.ReviewDto;
+import com.example.universalmarketplacebe.dto.request.RegisterRequest;
+import com.example.universalmarketplacebe.dto.request.UserUpdateRequest;
+import com.example.universalmarketplacebe.dto.response.UserDto;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;

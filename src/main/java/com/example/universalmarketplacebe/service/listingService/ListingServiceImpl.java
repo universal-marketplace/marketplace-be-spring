@@ -1,8 +1,8 @@
 package com.example.universalmarketplacebe.service.listingService;
 
-import com.example.universalmarketplacebe.dto.PageResponse;
-import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
-import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
+import com.example.universalmarketplacebe.dto.response.PageResponse;
+import com.example.universalmarketplacebe.dto.request.ListingRequest;
+import com.example.universalmarketplacebe.dto.response.ListingDto;
 import com.example.universalmarketplacebe.mapper.ListingMapper;
 import com.example.universalmarketplacebe.model.Listing;
 import com.example.universalmarketplacebe.model.User;
@@ -22,7 +22,7 @@ public class ListingServiceImpl implements ListingService {
 
     @Override
     public PageResponse<ListingDto> getAllListings(Pageable pageable) {
-        Page<Listing> listingPage = listingRepository.findAll(pageable);
+        Page<Listing> listingPage = listingRepository.findAllAvailable(pageable);
         return new PageResponse<>(listingPage.map(listingMapper::toDto));
     }
 

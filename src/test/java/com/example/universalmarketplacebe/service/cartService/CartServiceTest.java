@@ -1,8 +1,8 @@
 package com.example.universalmarketplacebe.service.cartService;
 
-import com.example.universalmarketplacebe.dto.cartRequest.AddToCartRequest;
-import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
-import com.example.universalmarketplacebe.dto.cartResponse.CartItemDto;
+import com.example.universalmarketplacebe.dto.request.AddToCartRequest;
+import com.example.universalmarketplacebe.dto.response.CartDto;
+import com.example.universalmarketplacebe.dto.response.CartItemDto;
 import com.example.universalmarketplacebe.mapper.CartMapper;
 import com.example.universalmarketplacebe.model.Cart;
 import com.example.universalmarketplacebe.model.CartItem;
@@ -135,7 +135,7 @@ class CartServiceTest {
     @DisplayName("addItemToCart() - Happy Path")
     void addItemToCart_HappyPath() {
         String email = "test@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        AddToCartRequest request = new AddToCartRequest(1L, 1, null);
         Cart cart = new Cart();
         cart.setCartItems(new ArrayList<>());
         Listing listing = createMockListing(1L);
@@ -159,7 +159,7 @@ class CartServiceTest {
     @DisplayName("addItemToCart() - Happy Path: Increment existing item")
     void addItemToCart_IncrementExisting() {
         String email = "test@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 2);
+        AddToCartRequest request = new AddToCartRequest(1L, 2, null);
         Cart cart = new Cart();
         Listing listing = createMockListing(1L);
         CartItem cartItem = new CartItem();
@@ -184,7 +184,7 @@ class CartServiceTest {
     @DisplayName("addItemToCart() - Worse Path: Listing Not Found")
     void addItemToCart_ListingNotFound() {
         String email = "test@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        AddToCartRequest request = new AddToCartRequest(1L, 1, null);
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn(email);
@@ -198,7 +198,7 @@ class CartServiceTest {
     @DisplayName("addItemToCart() - Worse Path: User Not Found")
     void addItemToCart_UserNotFound() {
         String email = "notfound@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        AddToCartRequest request = new AddToCartRequest(1L, 1, null);
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn(email);
@@ -216,7 +216,7 @@ class CartServiceTest {
     @DisplayName("updateItemInCart() - Happy Path")
     void updateItemInCart_HappyPath() {
         String email = "test@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 5);
+        AddToCartRequest request = new AddToCartRequest(1L, 5, null);
         Cart cart = new Cart();
         Listing listing = createMockListing(1L);
         CartItem cartItem = new CartItem();
@@ -241,10 +241,8 @@ class CartServiceTest {
     @DisplayName("updateItemInCart() - Happy Path: Remove if quantity <= 0")
     void updateItemInCart_RemoveIfZero() {
         String email = "test@example.com";
-        // Używamy zmiennej, aby uniknąć ostrzeżeń analizy statycznej dotyczących @Min(1) w rekordzie.
-        // Testujemy odporność serwisu na dane, które mogłyby teoretycznie ominąć walidację wejściową.
         int zeroQuantity = 0;
-        AddToCartRequest request = new AddToCartRequest(1L, zeroQuantity);
+        AddToCartRequest request = new AddToCartRequest(1L, zeroQuantity, null);
         Cart cart = new Cart();
         cart.setCartItems(new ArrayList<>());
         Listing listing = createMockListing(1L);
@@ -269,7 +267,7 @@ class CartServiceTest {
     @DisplayName("updateItemInCart() - Worse Path: User Not Found")
     void updateItemInCart_UserNotFound() {
         String email = "notfound@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        AddToCartRequest request = new AddToCartRequest(1L, 1, null);
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn(email);
@@ -283,7 +281,7 @@ class CartServiceTest {
     @DisplayName("updateItemInCart() - Worse Path: Listing Not Found")
     void updateItemInCart_ListingNotFound() {
         String email = "test@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        AddToCartRequest request = new AddToCartRequest(1L, 1, null);
 
         when(securityContext.getAuthentication()).thenReturn(authentication);
         when(authentication.getName()).thenReturn(email);
@@ -297,7 +295,7 @@ class CartServiceTest {
     @DisplayName("updateItemInCart() - Worse Path: Item Not In Cart")
     void updateItemInCart_ItemNotFound() {
         String email = "test@example.com";
-        AddToCartRequest request = new AddToCartRequest(1L, 1);
+        AddToCartRequest request = new AddToCartRequest(1L, 1, null);
         Cart cart = new Cart();
         Listing listing = createMockListing(1L);
 

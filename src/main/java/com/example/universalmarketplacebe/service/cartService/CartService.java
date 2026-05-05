@@ -1,7 +1,7 @@
 package com.example.universalmarketplacebe.service.cartService;
 
-import com.example.universalmarketplacebe.dto.cartRequest.AddToCartRequest;
-import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
+import com.example.universalmarketplacebe.dto.request.AddToCartRequest;
+import com.example.universalmarketplacebe.dto.response.CartDto;
 
 public interface CartService {
     CartDto getCart(String email);
@@ -11,4 +11,7 @@ public interface CartService {
     CartDto removeItemFromCart(Long listingId);
 
     CartDto updateItemInCart(AddToCartRequest addToCartRequest);
+    void checkout(String email, com.example.universalmarketplacebe.dto.request.CheckoutRequest request);
+
+    void clearCart(String email);
 }

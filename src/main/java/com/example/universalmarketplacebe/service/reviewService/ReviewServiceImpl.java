@@ -1,8 +1,8 @@
 package com.example.universalmarketplacebe.service.reviewService;
 
-import com.example.universalmarketplacebe.dto.reviewRequest.ReplyRequest;
-import com.example.universalmarketplacebe.dto.reviewRequest.ReviewCreateRequest;
-import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
+import com.example.universalmarketplacebe.dto.request.ReplyRequest;
+import com.example.universalmarketplacebe.dto.request.ReviewCreateRequest;
+import com.example.universalmarketplacebe.dto.response.ReviewDto;
 import com.example.universalmarketplacebe.mapper.ReviewMapper;
 import com.example.universalmarketplacebe.model.Reply;
 import com.example.universalmarketplacebe.model.Review;
@@ -11,7 +11,6 @@ import com.example.universalmarketplacebe.repository.replyRepository.ReplyReposi
 import com.example.universalmarketplacebe.repository.reviewRepository.ReviewRepository;
 import com.example.universalmarketplacebe.repository.userRepository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,7 +140,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
     }
 
-    private @NonNull Reply getReply(ReplyRequest replyRequest, Review review, Reply commentForThis) {
+    private Reply getReply(ReplyRequest replyRequest, Review review, Reply commentForThis) {
         User currentUser = getCurrentUser();
         Reply reply = new Reply();
         reply.setUser(currentUser);

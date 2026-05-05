@@ -5,6 +5,7 @@ import com.example.universalmarketplacebe.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -41,13 +42,12 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(
                     auth -> auth
+                            .requestMatchers("/api/v1/users/me", "/api/v1/notifications/**", "/api/v1/orders/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/listings/**", "/api/v1/listings").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v1/users/*", "/api/v1/users/*/listings", "/api/v1/users/*/reviews").permitAll()
                             .requestMatchers(
-                                    "/api/auth/**",
-                                    "/api/listings/**",
-                                    "/api/reviews/**",
-                                    "/api/users/*",
-                                    "/api/users/*/listings",
-                                    "/api/users/*/reviews",
                                     "/error",
                                     "/swagger-ui.html",
                                     "/swagger-ui/**",

@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     Optional<CartItem> findCartItemByCartAndListing(Cart cart, Listing listing);
+
+    boolean existsByListingAndBookingDate(com.example.universalmarketplacebe.model.Listing listing, java.time.LocalDate bookingDate);
 }
