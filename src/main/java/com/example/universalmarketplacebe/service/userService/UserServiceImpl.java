@@ -35,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final ListingMapper listingMapper;
     private final ReviewMapper reviewMapper;
+    private final VerificationService verificationService;
 
 
     @Override
@@ -109,7 +110,9 @@ public class UserServiceImpl implements UserService {
         }
         User user = userMapper.toEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.password()));
+        user.setEnabled(false);
         userRepository.save(user);
+        verificationService.createAndSendVerificationToken(user);
         return userMapper.toDto(user);
     }
 }

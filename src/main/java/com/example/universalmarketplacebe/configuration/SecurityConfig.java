@@ -43,7 +43,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                     auth -> auth
                             .requestMatchers("/api/v1/users/me", "/api/v1/notifications/**", "/api/v1/orders/**").authenticated()
-                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/verify", "/api/v1/auth/resend-verification").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/v1/listings/**", "/api/v1/listings").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/v1/users/*", "/api/v1/users/*/listings", "/api/v1/users/*/reviews").permitAll()
@@ -66,7 +66,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost", "http://localhost:80", "http://localhost:4200"));
+        configuration.setAllowedOrigins(List.of(
+            "http://localhost",
+            "http://localhost:80",
+            "http://localhost:4200",
+            "https://salmon-water-09232cc0f.7.azurestaticapps.net"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

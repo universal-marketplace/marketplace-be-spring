@@ -4,9 +4,12 @@ import com.example.universalmarketplacebe.dto.request.LoginRequest;
 import com.example.universalmarketplacebe.dto.request.RegisterRequest;
 import com.example.universalmarketplacebe.dto.response.AuthResponse;
 import com.example.universalmarketplacebe.dto.response.UserDto;
+import com.example.universalmarketplacebe.dto.request.VerifyRequest;
+import com.example.universalmarketplacebe.dto.request.ResendVerificationRequest;
 import com.example.universalmarketplacebe.exception.ErrorResponse;
 import com.example.universalmarketplacebe.security.AuthenticationService;
 import com.example.universalmarketplacebe.service.userService.UserService;
+import com.example.universalmarketplacebe.service.userService.VerificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final UserService userService;
     private final AuthenticationService authenticationService;
+    private final VerificationService verificationService;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user", description = "Creates a new user account")
@@ -42,5 +46,23 @@ public class AuthController {
     @ApiResponse(responseCode = "401", description = "Invalid credentials", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     public AuthResponse login(@RequestBody @Valid LoginRequest loginRequest) {
         return authenticationService.authenticate(loginRequest);
+    }
+
+    @PostMapping("/verify")
+    @Operation(summary = "Verify user account", description = "Verifies user account using the 6-digit code")
+    @ApiResponse(responseCode = "200", description = "Account verified successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid code or user", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public ResponseEntity<String> verify(@RequestBody @Valid VerifyRequest verifyRequest) {
+        verificationService.verifyUser(verifyRequest);
+        return ResponseEntity.ok("Account verified successfully");
+    }
+
+    @PostMapping("/resend-verification")
+    @Operation(summary = "Resend verification code", description = "Resends a verification code to the user's email")
+    @ApiResponse(responseCode = "200", description = "Code resent successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid user or already verified", content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    public ResponseEntity<String> resendVerification(@RequestBody @Valid ResendVerificationRequest resendRequest) {
+        verificationService.resendVerificationCode(resendRequest);
+        return ResponseEntity.ok("Verification code resent successfully");
     }
 }

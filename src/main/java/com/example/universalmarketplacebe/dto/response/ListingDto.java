@@ -22,6 +22,9 @@ public record ListingDto(
         @Schema(description = "Available quantity (for items)", example = "1")
         Integer unitAmount,
         
+        @Schema(description = "Price unit (for services, e.g., 'PER_HOUR', 'PER_M2', 'PER_SERVICE')", example = "PER_HOUR")
+        String priceUnit,
+        
         @Schema(description = "URL of the listing image", example = "https://example.com/images/camera.jpg")
         String imageUrl,
         

@@ -62,7 +62,7 @@ class ListingServiceTest {
 
     private ListingDto createMockListingDto(Long id) {
         return new ListingDto(
-                id, "Title", "Description", BigDecimal.valueOf(100.0), 1, "http://image.url",
+                id, "Title", "Description", BigDecimal.valueOf(100.0), 1, null, "http://image.url",
                 1L, "Advertiser", "avatar.png", 4.5, 10,
                 List.of("tag1", "tag2"), "ITEM"
         );
@@ -71,7 +71,7 @@ class ListingServiceTest {
     private ListingRequest createMockListingRequest() {
         return new ListingRequest(
                 "Title", "Description", BigDecimal.valueOf(100.0),
-                1, "http://image.url", List.of("tag1", "tag2"), "ITEM"
+                1, null, "http://image.url", List.of("tag1", "tag2"), "ITEM"
         );
     }
 
