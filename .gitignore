@@ -1,8 +1,11 @@
 HELP.md
 target/
+GEMINI.md
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
+GEMINI.md
 !**/src/test/**/target/
+GEMINI.md
 
 ### STS ###
 .apt_generated

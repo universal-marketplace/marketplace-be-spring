@@ -1,11 +1,11 @@
 package com.example.universalmarketplacebe.service.userService;
 
-import com.example.universalmarketplacebe.dto.PageResponse;
-import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
-import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
-import com.example.universalmarketplacebe.dto.userRequest.RegisterRequest;
-import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
-import com.example.universalmarketplacebe.dto.userResponse.UserDto;
+import com.example.universalmarketplacebe.dto.request.RegisterRequest;
+import com.example.universalmarketplacebe.dto.request.UserUpdateRequest;
+import com.example.universalmarketplacebe.dto.response.ListingDto;
+import com.example.universalmarketplacebe.dto.response.PageResponse;
+import com.example.universalmarketplacebe.dto.response.ReviewDto;
+import com.example.universalmarketplacebe.dto.response.UserDto;
 import com.example.universalmarketplacebe.mapper.ListingMapper;
 import com.example.universalmarketplacebe.mapper.ReviewMapper;
 import com.example.universalmarketplacebe.mapper.UserMapper;
@@ -25,8 +25,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -37,6 +35,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final ListingMapper listingMapper;
     private final ReviewMapper reviewMapper;
+    private final VerificationService verificationService;
 
 
     @Override
@@ -55,7 +54,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto updateUser(String email, UserUpdateRequest user) {
         User existingUser = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        
+
         if (user.email() != null && !user.email().equals(email)) {
             if (userRepository.findByEmail(user.email()).isPresent()) {
                 throw new IllegalArgumentException("User with this email already exists");
@@ -64,17 +63,19 @@ public class UserServiceImpl implements UserService {
                 throw new IllegalArgumentException("Emails do not match");
             }
         }
-        
+
         userMapper.updateEntityFromRequest(user, existingUser);
         User updatedUser = userRepository.save(existingUser);
 
         Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
-        UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
-                updatedUser,
-                currentAuth.getCredentials(),
-                currentAuth.getAuthorities()
-        );
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
+        if (currentAuth != null) {
+            UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+                    updatedUser,
+                    currentAuth.getCredentials(),
+                    currentAuth.getAuthorities()
+            );
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+        }
 
         return userMapper.toDto(updatedUser);
     }
@@ -109,7 +110,9 @@ public class UserServiceImpl implements UserService {
         }
         User user = userMapper.toEntity(registerRequest);
         user.setPassword(passwordEncoder.encode(registerRequest.password()));
+        user.setEnabled(false);
         userRepository.save(user);
+        verificationService.createAndSendVerificationToken(user);
         return userMapper.toDto(user);
     }
 }

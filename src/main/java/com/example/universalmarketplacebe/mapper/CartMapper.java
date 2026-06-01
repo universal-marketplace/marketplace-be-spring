@@ -1,8 +1,8 @@
 package com.example.universalmarketplacebe.mapper;
 
 import com.example.universalmarketplacebe.configuration.MapperConfig;
-import com.example.universalmarketplacebe.dto.cartResponse.CartDto;
-import com.example.universalmarketplacebe.dto.cartResponse.CartItemDto;
+import com.example.universalmarketplacebe.dto.response.CartDto;
+import com.example.universalmarketplacebe.dto.response.CartItemDto;
 import com.example.universalmarketplacebe.model.Cart;
 import com.example.universalmarketplacebe.model.CartItem;
 import org.mapstruct.Mapper;

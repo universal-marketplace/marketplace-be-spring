@@ -1,8 +1,8 @@
 package com.example.universalmarketplacebe.mapper;
 
 import com.example.universalmarketplacebe.configuration.MapperConfig;
-import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
-import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
+import com.example.universalmarketplacebe.dto.request.ListingRequest;
+import com.example.universalmarketplacebe.dto.response.ListingDto;
 import com.example.universalmarketplacebe.model.Listing;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

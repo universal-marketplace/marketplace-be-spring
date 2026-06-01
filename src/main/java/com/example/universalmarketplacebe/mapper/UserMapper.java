@@ -1,9 +1,9 @@
 package com.example.universalmarketplacebe.mapper;
 
 import com.example.universalmarketplacebe.configuration.MapperConfig;
-import com.example.universalmarketplacebe.dto.userRequest.RegisterRequest;
-import com.example.universalmarketplacebe.dto.userRequest.UserUpdateRequest;
-import com.example.universalmarketplacebe.dto.userResponse.UserDto;
+import com.example.universalmarketplacebe.dto.request.RegisterRequest;
+import com.example.universalmarketplacebe.dto.request.UserUpdateRequest;
+import com.example.universalmarketplacebe.dto.response.UserDto;
 import com.example.universalmarketplacebe.model.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

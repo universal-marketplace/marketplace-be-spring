@@ -34,6 +34,9 @@ public class Listing {
     @Column(name = "unit_amount")
     private Integer unitAmount;
 
+    @Column(name = "price_unit")
+    private String priceUnit;
+
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 

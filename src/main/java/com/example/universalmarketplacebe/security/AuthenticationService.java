@@ -1,7 +1,7 @@
 package com.example.universalmarketplacebe.security;
 
-import com.example.universalmarketplacebe.dto.userRequest.LoginRequest;
-import com.example.universalmarketplacebe.dto.userResponse.AuthResponse;
+import com.example.universalmarketplacebe.dto.request.LoginRequest;
+import com.example.universalmarketplacebe.dto.response.AuthResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

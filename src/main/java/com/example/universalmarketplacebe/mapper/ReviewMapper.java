@@ -1,9 +1,9 @@
 package com.example.universalmarketplacebe.mapper;
 
 import com.example.universalmarketplacebe.configuration.MapperConfig;
-import com.example.universalmarketplacebe.dto.reviewRequest.ReviewCreateRequest;
-import com.example.universalmarketplacebe.dto.reviewResponse.ReplyDto;
-import com.example.universalmarketplacebe.dto.reviewResponse.ReviewDto;
+import com.example.universalmarketplacebe.dto.request.ReviewCreateRequest;
+import com.example.universalmarketplacebe.dto.response.ReplyDto;
+import com.example.universalmarketplacebe.dto.response.ReviewDto;
 import com.example.universalmarketplacebe.model.Reply;
 import com.example.universalmarketplacebe.model.Review;
 import org.mapstruct.Mapper;

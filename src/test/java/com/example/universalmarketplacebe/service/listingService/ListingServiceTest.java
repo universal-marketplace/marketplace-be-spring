@@ -1,8 +1,8 @@
 package com.example.universalmarketplacebe.service.listingService;
 
-import com.example.universalmarketplacebe.dto.PageResponse;
-import com.example.universalmarketplacebe.dto.listingRequest.ListingRequest;
-import com.example.universalmarketplacebe.dto.listingResponse.ListingDto;
+import com.example.universalmarketplacebe.dto.response.PageResponse;
+import com.example.universalmarketplacebe.dto.request.ListingRequest;
+import com.example.universalmarketplacebe.dto.response.ListingDto;
 import com.example.universalmarketplacebe.mapper.ListingMapper;
 import com.example.universalmarketplacebe.model.Listing;
 import com.example.universalmarketplacebe.model.User;
@@ -62,7 +62,7 @@ class ListingServiceTest {
 
     private ListingDto createMockListingDto(Long id) {
         return new ListingDto(
-                id, "Title", "Description", BigDecimal.valueOf(100.0), "http://image.url",
+                id, "Title", "Description", BigDecimal.valueOf(100.0), 1, null, "http://image.url",
                 1L, "Advertiser", "avatar.png", 4.5, 10,
                 List.of("tag1", "tag2"), "ITEM"
         );
@@ -71,7 +71,7 @@ class ListingServiceTest {
     private ListingRequest createMockListingRequest() {
         return new ListingRequest(
                 "Title", "Description", BigDecimal.valueOf(100.0),
-                1, "http://image.url", List.of("tag1", "tag2"), "ITEM"
+                1, null, "http://image.url", List.of("tag1", "tag2"), "ITEM"
         );
     }
 
@@ -83,14 +83,14 @@ class ListingServiceTest {
         Page<Listing> page = new PageImpl<>(List.of(listing));
         ListingDto dto = createMockListingDto(1L);
 
-        when(listingRepository.findAll(pageable)).thenReturn(page);
+        when(listingRepository.findAllAvailable(pageable)).thenReturn(page);
         when(listingMapper.toDto(any(Listing.class))).thenReturn(dto);
 
         PageResponse<ListingDto> result = listingService.getAllListings(pageable);
 
         assertNotNull(result);
         assertEquals(1, result.content().size());
-        verify(listingRepository).findAll(pageable);
+        verify(listingRepository).findAllAvailable(pageable);
     }
 
     @Test

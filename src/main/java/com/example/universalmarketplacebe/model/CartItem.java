@@ -23,4 +23,7 @@ public class CartItem {
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
+
+    @Column(name = "booking_date")
+    private java.time.LocalDate bookingDate;
 }

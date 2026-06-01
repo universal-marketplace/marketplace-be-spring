@@ -1,9 +1,18 @@
-FROM openjdk:25-ea-jdk-slim as builder
-WORKDIR /app
-COPY target/*.jar app.jar
+FROM maven:3.9-eclipse-temurin-25 AS builder
 
-FROM openjdk:25-ea-jdk-slim
 WORKDIR /app
-COPY --from=builder /app/app.jar ./
+
+COPY pom.xml .
+COPY src ./src
+
+RUN mvn clean package -DskipTests
+
+FROM eclipse-temurin:25-jdk
+
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
 EXPOSE 8080
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
