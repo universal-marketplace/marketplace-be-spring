@@ -58,6 +58,9 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private VerificationService verificationService;
+
     @InjectMocks
     private UserServiceImpl userService;
 
@@ -261,6 +264,7 @@ class UserServiceTest {
 
         assertNotNull(result);
         verify(userRepository).save(user);
+        verify(verificationService).createAndSendVerificationToken(user);
     }
 
     @Test
