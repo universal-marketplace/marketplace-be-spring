@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
@@ -29,6 +30,9 @@ import java.util.List;
 public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     @Bean
     public PasswordEncoder getPasswordEncoder() {
@@ -48,6 +52,8 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/v1/users/*", "/api/v1/users/*/listings", "/api/v1/users/*/reviews").permitAll()
                             .requestMatchers(
+                                    "/",
+                                    "/api/v1/health",
                                     "/error",
                                     "/swagger-ui.html",
                                     "/swagger-ui/**",
@@ -66,12 +72,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-            "http://localhost",
-            "http://localhost:80",
-            "http://localhost:4200",
-            "https://salmon-water-09232cc0f.7.azurestaticapps.net"
-        ));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
