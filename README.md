@@ -38,7 +38,7 @@ Projekt rozwiązuje problem braku elastycznej i zunifikowanej platformy, która 
 
 1. **Sklonuj repozytorium**
    ```bash
-   git clone <url-repozytorium>
+   git clone [<url-repozytorium>](https://github.com/universal-marketplace/marketplace-be-spring.git)
    cd universal-marketplace-be
    ```
 
